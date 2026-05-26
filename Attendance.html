@@ -1480,9 +1480,6 @@ function modalConfirm(message, title, opts) {
     danger: opts.danger,
   });
 }
-function modalAlert(message, title) {
-  return showModal({ type: 'alert', title: title || 'お知らせ', message: message });
-}
 function modalPrompt(message, defaultValue, title) {
   return showModal({ type: 'prompt', title: title || '入力', message: message, defaultValue: defaultValue });
 }
