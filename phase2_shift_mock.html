@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase2 シフトカレンダー（モック）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: #1a1a1a;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(255,194,224,0.5) 0, transparent 28%),
+        radial-gradient(circle at 92% 96%, rgba(255,210,140,0.45) 0, transparent 32%),
+        #f5f5f7;
+      min-height: 100vh;
+      padding: 14px;
+      padding-bottom: 40px;
+    }
+    .mock-banner {
+      background: #fff3e0;
+      color: #e65100;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      text-align: center;
+      border-left: 3px solid #ff9a3e;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 14px;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 16px;
+    }
+    .header .shop {
+      font-size: 10px; color: #d6336c; font-weight: 700; letter-spacing: 3px;
+    }
+    .header .title {
+      font-size: 20px; font-weight: 800;
+      color: #d6336c;
+      letter-spacing: 3px; margin-top: 2px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .card h2 {
+      font-size: 14px; font-weight: 700; color: #d6336c;
+      margin-bottom: 10px; padding-left: 8px;
+      border-left: 3px solid #ff9a3e; letter-spacing: 1px;
+    }
+
+    /* 月セレクター */
+    .month-nav {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .month-nav button {
+      padding: 8px 12px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #1a1a1a;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .month-nav button:active { transform: scale(0.95); }
+    .month-nav .month-label {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+
+    /* カレンダー */
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-head {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px;
+      color: #888;
+    }
+    .cal-head.sun { color: #e53935; }
+    .cal-head.sat { color: #1976d2; }
+    .cal-cell {
+      aspect-ratio: 1 / 1.1;
+      background: #fff;
+      border-radius: 8px;
+      padding: 4px 3px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 0.1s;
+      position: relative;
+    }
+    .cal-cell:active { transform: scale(0.95); }
+    .cal-cell.empty { background: transparent; cursor: default; }
+    .cal-cell.today { border-color: #ff6b9d; background: #f5f5f7; }
+    .cal-cell.selected { background: #d6336c; }
+    .cal-cell.selected .day-num, .cal-cell.selected .count { color: #fff; }
+    .cal-cell .day-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .cal-cell.is-sun .day-num { color: #e53935; }
+    .cal-cell.is-sat .day-num { color: #1976d2; }
+    .cal-cell .count {
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #d6336c;
+    }
+    .cal-cell .badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff9a3e;
+    }
+    .cal-cell.few .count { color: #e53935; }
+    .cal-cell.many .count { color: #43a047; }
+
+    /* 凡例 */
+    .legend {
+      margin-top: 10px;
+      font-size: 10px;
+      color: #888;
+      text-align: center;
+    }
+    .legend span {
+      display: inline-block;
+      margin: 0 6px;
+    }
+    .legend b {
+      font-weight: 700;
+    }
+
+    /* 日詳細 */
+    .day-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .day-detail-header .date {
+      font-size: 16px;
+      font-weight: 800;
+      color: #d6336c;
+    }
+    .day-detail-header .count {
+      font-size: 11px;
+      color: #888;
+      background: #fafafa;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .staff-shift-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      border-left: 3px solid #43a047;
+    }
+    .staff-shift-row.status-pending { border-left-color: #ff9a3e; background: #fff8f0; }
+    .staff-shift-row.status-ng { border-left-color: #e53935; background: #fff5f5; }
+    .staff-shift-row .name {
+      font-weight: 700; color: #1a1a1a; font-size: 13px;
+    }
+    .staff-shift-row .time {
+      font-size: 11px; color: #888; margin-top: 2px;
+    }
+    .staff-shift-row .status-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      margin-left: 6px;
+      font-weight: 700;
+    }
+    .status-badge.pending { background: #fff3e0; color: #e65100; }
+    .status-badge.ok { background: #e8f5e9; color: #2e7d32; }
+    .staff-shift-row .actions {
+      display: flex;
+      gap: 4px;
+    }
+    .shift-btn {
+      padding: 6px 10px;
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      border-radius: 6px;
+      font-size: 10px;
+      color: #d6336c;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .shift-btn:active { transform: scale(0.95); }
+    .shift-btn.primary {
+      background: #d6336c;
+      color: #fff;
+      border: none;
+    }
+
+    /* 一括アクション */
+    .bulk-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .bulk-btn {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .bulk-btn.broadcast {
+      background: #fff8f0;
+      color: #e65100;
+      border: 1.5px solid #ffcc80;
+    }
+    .bulk-btn.urgent {
+      background: #d6336c;
+      color: #fff;
+    }
+
+    /* モーダル */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-bg.show {
+      display: flex;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 360px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 {
+      font-size: 15px;
+      color: #d6336c;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .modal-row {
+      margin-bottom: 12px;
+    }
+    .modal-row label {
+      display: block;
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .modal-row input, .modal-row select, .modal-row textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #1a1a1a;
+      background: #fff;
+      font-family: inherit;
+    }
+    .modal-row textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+    .time-pair {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .time-pair .sep {
+      color: #888;
+      font-weight: 700;
+    }
+    .preview {
+      background: #f5f5f7;
+      border: 1px dashed #ffd6e8;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 10px 0;
+      white-space: pre-line;
+    }
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .modal-actions button {
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+    }
+    .modal-actions .cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+    .modal-actions .confirm {
+      background: #d6336c;
+      color: #fff;
+    }
+
+    /* チェックボックスリスト */
+    .check-list {
+      max-height: 150px;
+      overflow-y: auto;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .check-list label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .check-list label:hover {
+      background: #fff;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="mock-banner">
+  🧪 Phase2 モック / 📅 シフトカレンダー＋当日調整
+</div>
+
+<div class="header">
+  <div class="shop">スナック コレカラ</div>
+  <div class="title">📅 シフト管理</div>
+</div>
+
+<!-- カレンダー -->
+<div class="card">
+  <h2>📅 シフトカレンダー</h2>
+  <div class="month-nav">
+    <button onclick="changeMonth(-1)">◀ 前月</button>
+    <div class="month-label" id="monthLabel">2026年6月</div>
+    <button onclick="changeMonth(1)">次月 ▶</button>
+  </div>
+
+  <div class="calendar" id="calendar"></div>
+
+  <div class="legend">
+    <span>🟢 <b>多め</b>(5名+)</span>
+    <span>⚪ 通常</span>
+    <span>🔴 <b>少なめ</b>(3名以下)</span>
+    <span>🟠 当日調整あり</span>
+  </div>
+</div>
+
+<!-- 日詳細 -->
+<div class="card" id="dayDetail" style="display:none;">
+  <h2>👥 出勤予定</h2>
+  <div class="day-detail-header">
+    <div class="date" id="detailDate">6/2 (火)</div>
+    <div class="count" id="detailCount">3名出勤予定</div>
+  </div>
+
+  <div id="staffList"></div>
+
+  <div class="bulk-actions">
+    <button class="bulk-btn broadcast" onclick="showBroadcastModal()">
+      📢 出勤予定の全員に連絡を送る
+    </button>
+    <button class="bulk-btn urgent" onclick="showUrgentModal()">
+      ➕ 急遽出勤依頼を送る（他の人）
+    </button>
+  </div>
+</div>
+
+<!-- モーダル：時間変更 -->
+<div class="modal-bg" id="modalTimeChange">
+  <div class="modal">
+    <h3>⏰ 時間変更依頼</h3>
+    <div style="font-size:12px; color: #888; margin-bottom:10px;">
+      <b id="targetName">池みゆき</b> さんに変更依頼を送ります
+    </div>
+
+    <div class="modal-row">
+      <label>現在の時間</label>
+      <div style="padding:8px; background:#f5f5f5; border-radius:6px; font-size:12px;">
+        <span id="currentTime">20:00〜26:00</span>
+      </div>
+    </div>
+
+    <div class="modal-row">
+      <label>変更後の時間</label>
+      <div class="time-pair">
+        <select id="newFrom">
+          <option>20:00</option><option>20:30</option><option>21:00</option>
+          <option>21:30</option><option selected>22:00</option><option>22:30</option><option>23:00</option>
+        </select>
+        <span class="sep">〜</span>
+        <select id="newTo">
+          <option>00:00</option><option>01:00</option><option selected>02:00</option>
+          <option>03:00</option><option>04:00</option><option>05:00</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-row">
+      <label>理由（任意）</label>
+      <textarea id="reason" placeholder="例：今日人数多いので">今日少し人数多いので</textarea>
+    </div>
+
+    <div class="preview" id="previewMsg">📩 LINE プレビュー：
+池みゆきさん、本日のシフト変更のお願いです。
+
+元: 20:00〜26:00
+新: 22:00〜02:00
+理由: 今日少し人数多いので
+
+[✅ OK] [❌ NG]</div>
+
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">キャンセル</button>
+      <button class="confirm" onclick="sendChange()">📩 送信</button>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル：人数調整連絡 -->
+<div class="modal-bg" id="modalBroadcast">
+  <div class="modal">
+    <h3>📢 出勤者全員に連絡</h3>
+    <div style="font-size:12px; color: #888; margin-bottom:10px;">
+      6/2 出勤予定の <b>3名</b> 全員にLINEを送信します
+    </div>
+
+    <div class="modal-row">
+      <label>メッセージ内容</label>
+      <textarea>本日は予約多めです。
+全員定刻出勤でお願いします。
+ご協力お願いします🙏</textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">キャンセル</button>
+      <button class="confirm" onclick="closeModal()">📩 全員に送信</button>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル：急遽出勤依頼 -->
+<div class="modal-bg" id="modalUrgent">
+  <div class="modal">
+    <h3>➕ 急遽出勤依頼</h3>
+    <div style="font-size:12px; color: #888; margin-bottom:10px;">
+      6/2 が休み or 未提出のスタッフに依頼を送ります
+    </div>
+
+    <div class="modal-row">
+      <label>送信対象</label>
+      <div class="check-list">
+        <label><input type="checkbox" checked> 山田ひより</label>
+        <label><input type="checkbox" checked> 多田晴夏</label>
+        <label><input type="checkbox"> 松尾彩乃</label>
+        <label><input type="checkbox"> 植松千晴</label>
+        <label><input type="checkbox"> 福島理恵</label>
+        <label><input type="checkbox"> 田邉凜</label>
+      </div>
+    </div>
+
+    <div class="modal-row">
+      <label>希望時間</label>
+      <div class="time-pair">
+        <select><option selected>20:00</option><option>20:30</option><option>21:00</option></select>
+        <span class="sep">〜</span>
+        <select><option>00:00</option><option>01:00</option><option selected>02:00</option></select>
+      </div>
+    </div>
+
+    <div class="modal-row">
+      <label>メッセージ</label>
+      <textarea>本日少し人数が少ないので、
+ご都合つく方は入っていただけませんか？
+20:00〜02:00 を想定しています。
+
+[👌 入れます] [🙏 すみません]</textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">キャンセル</button>
+      <button class="confirm" onclick="closeModal()">📩 選択者に送信</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentYear = 2026;
+var currentMonth = 6;
+var selectedDay = null;
+
+// ダミーデータ
+var shiftData = {
+  // 日: { count: 人数, members: [{name, from, to, status}], hasAdjust: 調整中フラグ }
+  1: { count: 4, members: [
+    {name:'池みゆき', from:'20:00', to:'02:00', status:'ok'},
+    {name:'長谷川楓夏', from:'20:00', to:'02:00', status:'ok'},
+    {name:'堤美伊那', from:'21:00', to:'02:00', status:'ok'},
+    {name:'宮本まほ', from:'20:30', to:'01:00', status:'ok'},
+  ], hasAdjust: false },
+  2: { count: 3, members: [
+    {name:'池みゆき', from:'20:00', to:'02:00', status:'ok'},
+    {name:'長谷川楓夏', from:'20:00', to:'02:00', status:'pending'},
+    {name:'堤美伊那', from:'21:00', to:'02:00', status:'ok'},
+  ], hasAdjust: true },
+  3: { count: 5, members: [
+    {name:'池みゆき', from:'20:00', to:'02:00', status:'ok'},
+    {name:'長谷川楓夏', from:'20:00', to:'02:00', status:'ok'},
+    {name:'堤美伊那', from:'21:00', to:'02:00', status:'ok'},
+    {name:'宮本まほ', from:'20:30', to:'01:00', status:'ok'},
+    {name:'山田ひより', from:'20:00', to:'02:00', status:'ok'},
+  ], hasAdjust: false },
+  4: { count: 2, members: [
+    {name:'池みゆき', from:'20:00', to:'02:00', status:'ok'},
+    {name:'宮本まほ', from:'20:30', to:'01:00', status:'ok'},
+  ], hasAdjust: false },
+  5: { count: 6, members: [
+    {name:'池みゆき', from:'20:00', to:'02:00', status:'ok'},
+    {name:'長谷川楓夏', from:'20:00', to:'02:00', status:'ok'},
+    {name:'堤美伊那', from:'21:00', to:'02:00', status:'ok'},
+    {name:'宮本まほ', from:'20:30', to:'01:00', status:'ok'},
+    {name:'山田ひより', from:'20:00', to:'02:00', status:'ok'},
+    {name:'秋吉つかさ', from:'21:00', to:'02:00', status:'ok'},
+  ], hasAdjust: false },
+};
+// 残りの日もダミー埋め
+for (var i = 6; i <= 30; i++) {
+  if (!shiftData[i]) {
+    var c = [3, 4, 5, 4, 3, 6, 5][i % 7];
+    shiftData[i] = { count: c, members: [], hasAdjust: false };
+  }
+}
+
+function buildCalendar() {
+  document.getElementById('monthLabel').textContent = currentYear + '年' + currentMonth + '月';
+  var firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
+  var lastDate = new Date(currentYear, currentMonth, 0).getDate();
+  var html = '';
+  // ヘッダ
+  ['日','月','火','水','木','金','土'].forEach(function(d, i){
+    var cls = i === 0 ? 'sun' : (i === 6 ? 'sat' : '');
+    html += '<div class="cal-head ' + cls + '">' + d + '</div>';
+  });
+  // 空白
+  for (var i = 0; i < firstDay; i++) {
+    html += '<div class="cal-cell empty"></div>';
+  }
+  // 日付
+  for (var d = 1; d <= lastDate; d++) {
+    var data = shiftData[d] || { count: 0, hasAdjust: false };
+    var dow = new Date(currentYear, currentMonth - 1, d).getDay();
+    var cls = 'cal-cell';
+    if (dow === 0) cls += ' is-sun';
+    else if (dow === 6) cls += ' is-sat';
+    if (d === 2) cls += ' today';
+    if (data.count <= 3 && data.count > 0) cls += ' few';
+    if (data.count >= 5) cls += ' many';
+    if (selectedDay === d) cls += ' selected';
+    html += '<div class="' + cls + '" onclick="selectDay(' + d + ')">' +
+      '<div class="day-num">' + d + '</div>' +
+      (data.count > 0 ? '<div class="count">' + data.count + '名</div>' : '') +
+      (data.hasAdjust ? '<div class="badge"></div>' : '') +
+      '</div>';
+  }
+  document.getElementById('calendar').innerHTML = html;
+}
+
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+  if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+  selectedDay = null;
+  document.getElementById('dayDetail').style.display = 'none';
+  buildCalendar();
+}
+
+function selectDay(d) {
+  selectedDay = d;
+  buildCalendar();
+  showDayDetail(d);
+}
+
+function showDayDetail(d) {
+  var data = shiftData[d];
+  if (!data || data.count === 0) {
+    document.getElementById('dayDetail').style.display = 'none';
+    return;
+  }
+  var dow = new Date(currentYear, currentMonth - 1, d).getDay();
+  var dows = ['日','月','火','水','木','金','土'][dow];
+  document.getElementById('detailDate').textContent = currentMonth + '/' + d + ' (' + dows + ')';
+  document.getElementById('detailCount').textContent = data.count + '名出勤予定';
+
+  var html = '';
+  data.members.forEach(function(m){
+    var rowCls = 'staff-shift-row';
+    if (m.status === 'pending') rowCls += ' status-pending';
+    var badge = m.status === 'pending' ?
+      '<span class="status-badge pending">⏳調整中</span>' : '';
+    html += '<div class="' + rowCls + '">' +
+      '<div>' +
+        '<div class="name">' + m.name + badge + '</div>' +
+        '<div class="time">🕐 ' + m.from + '〜' + m.to + '</div>' +
+      '</div>' +
+      '<div class="actions">' +
+        '<button class="shift-btn" onclick="showTimeChange(\'' + m.name + '\', \'' + m.from + '〜' + m.to + '\')">⏰ 時間</button>' +
+        '<button class="shift-btn primary" onclick="alert(\'' + m.name + 'さんに個別LINE送信\')">📩</button>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('staffList').innerHTML = html;
+  document.getElementById('dayDetail').style.display = '';
+}
+
+function showTimeChange(name, currentTime) {
+  document.getElementById('targetName').textContent = name;
+  document.getElementById('currentTime').textContent = currentTime;
+  document.getElementById('modalTimeChange').classList.add('show');
+  updatePreview();
+}
+
+function updatePreview() {
+  var name = document.getElementById('targetName').textContent;
+  var current = document.getElementById('currentTime').textContent;
+  var newFrom = document.getElementById('newFrom').value;
+  var newTo = document.getElementById('newTo').value;
+  var reason = document.getElementById('reason').value;
+  var msg = '📩 LINE プレビュー：\n' + name + 'さん、本日のシフト変更のお願いです。\n\n' +
+    '元: ' + current + '\n' +
+    '新: ' + newFrom + '〜' + newTo + '\n' +
+    (reason ? '理由: ' + reason + '\n' : '') +
+    '\n[✅ OK] [❌ NG]';
+  document.getElementById('previewMsg').textContent = msg;
+}
+
+['newFrom','newTo','reason'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', updatePreview);
+  document.getElementById(id).addEventListener('change', updatePreview);
+});
+
+function showBroadcastModal() {
+  document.getElementById('modalBroadcast').classList.add('show');
+}
+function showUrgentModal() {
+  document.getElementById('modalUrgent').classList.add('show');
+}
+function closeModal() {
+  document.querySelectorAll('.modal-bg').forEach(function(m){ m.classList.remove('show'); });
+}
+function sendChange() {
+  closeModal();
+  alert('✅ LINE送信しました（モック）\nスタッフがOKを押すと自動的にシフト確定が更新されます');
+}
+
+// 初期表示
+buildCalendar();
+selectDay(2);
+</script>
+</body>
+</html>
