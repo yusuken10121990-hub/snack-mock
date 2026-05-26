@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 新ダッシュボード（モック）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: #1a1a1a;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(255,194,224,0.5) 0, transparent 28%),
+        radial-gradient(circle at 92% 96%, rgba(255,210,140,0.45) 0, transparent 32%),
+        #f5f5f7;
+      min-height: 100vh;
+      padding: 14px;
+      padding-bottom: 40px;
+    }
+    .mock-banner {
+      background: #fff3e0;
+      color: #e65100;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      text-align: center;
+      border-left: 3px solid #ff9a3e;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 14px;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .header .shop {
+      font-size: 10px;
+      color: #d6336c;
+      font-weight: 700;
+      letter-spacing: 3px;
+    }
+    .header .title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #d6336c;
+      letter-spacing: 3px;
+      margin-top: 2px;
+    }
+    .header .sub {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    /* タブ */
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+      background: #fafafa;
+      padding: 6px;
+      border-radius: 14px;
+    }
+    .tab {
+      padding: 10px 6px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.5px;
+    }
+    .tab.active {
+      background: #d6336c;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    /* カード共通 */
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .card h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #d6336c;
+      margin-bottom: 10px;
+      padding-left: 8px;
+      border-left: 3px solid #ff9a3e;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card h2 .updated {
+      font-size: 10px;
+      color: #888;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+    .card h2 .updated b {
+      color: #d6336c;
+    }
+
+    /* 売上ダッシュボード */
+    .sales-block {
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .sales-block.today {
+      background: #fafafa;
+    }
+    .sales-block.month {
+      background: #fff8f0;
+    }
+    .sales-label {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 3px;
+      margin-bottom: 6px;
+    }
+    .sales-amount {
+      font-size: 36px;
+      font-weight: 800;
+      color: #d6336c;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .sales-meta {
+      font-size: 11px;
+      color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .sales-meta b {
+      color: #d6336c;
+    }
+    .month-selector-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .month-selector-row label {
+      font-size: 11px;
+      color: #888;
+      flex-shrink: 0;
+    }
+    .month-selector-row select {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #1a1a1a;
+      background: #fff;
+    }
+
+    /* 日別グラフ */
+    .daily-chart {
+      margin-top: 14px;
+      background: #fafafa;
+      padding: 12px;
+      border-radius: 10px;
+    }
+    .daily-chart-title {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 80px;
+    }
+    .chart-bar {
+      flex: 1;
+      background: #d6336c;
+      border-radius: 2px 2px 0 0;
+      min-height: 2px;
+      position: relative;
+      transition: opacity 0.15s;
+    }
+    .chart-bar.today {
+      background: #d6336c;
+      box-shadow: 0 0 8px rgba(214, 51, 108, 0.2);
+    }
+    .chart-bar:hover {
+      opacity: 0.7;
+    }
+    .chart-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    /* スタッフリスト */
+    .staff-section {
+      margin-bottom: 12px;
+    }
+    .staff-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: #fafafa;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .staff-section-header.working { color: #2e7d32; }
+    .staff-section-header.done { color: #1565c0; }
+    .staff-section-header.notyet { color: #c62828; }
+
+    .staff-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+    .staff-row.working { border-left: 3px solid #43a047; }
+    .staff-row.done    { border-left: 3px solid #1976d2; }
+    .staff-row.notyet  { border-left: 3px solid #e53935; opacity: 0.85; }
+    .staff-row .name {
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .staff-row .time {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .staff-row .meta {
+      text-align: right;
+      font-size: 11px;
+      color: #1a1a1a;
+    }
+    .staff-row .meta b {
+      color: #d6336c;
+      font-size: 13px;
+    }
+    .staff-row .meta .work-time {
+      font-size: 10px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* 打刻漏れ */
+    .miss-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: #f5f5f7;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      font-size: 12px;
+      border-left: 3px solid #ff9a3e;
+    }
+    .miss-row .date {
+      font-weight: 700;
+      color: #d6336c;
+    }
+    .miss-row .name {
+      color: #1a1a1a;
+    }
+    .miss-row .type {
+      font-size: 10px;
+      color: #888;
+      background: #fff3e0;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .empty-msg {
+      text-align: center;
+      padding: 24px;
+      color: #888;
+      font-size: 12px;
+    }
+
+    /* 給料一覧 */
+    .salary-row {
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      overflow: hidden;
+      transition: background 0.15s;
+    }
+    .salary-summary {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+    .salary-summary .name {
+      font-weight: 700;
+      color: #1a1a1a;
+      font-size: 13px;
+    }
+    .salary-summary .amount {
+      font-size: 15px;
+      font-weight: 800;
+      color: #d6336c;
+    }
+    .salary-summary .toggle {
+      color: #888;
+      font-size: 11px;
+      transition: transform 0.15s;
+    }
+    .salary-row.open .toggle {
+      transform: rotate(90deg);
+    }
+    .salary-detail {
+      display: none;
+      padding: 10px 14px 14px;
+      border-top: 1px dashed #ffd6e8;
+      background: #fafafa;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .salary-row.open .salary-detail {
+      display: block;
+    }
+    .detail-line {
+      display: flex;
+      justify-content: space-between;
+      color: #1a1a1a;
+    }
+    .detail-line.total {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #ffd6e8;
+      font-weight: 700;
+      color: #d6336c;
+    }
+
+    /* リフレッシュバッジ */
+    .refresh-info {
+      text-align: center;
+      font-size: 10px;
+      color: #888;
+      margin: -8px 0 12px;
+    }
+    .refresh-info b {
+      color: #d6336c;
+    }
+
+    .total-bar {
+      background: #fff8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .total-bar .label {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 2px;
+    }
+    .total-bar .amount {
+      font-size: 20px;
+      font-weight: 800;
+      color: #d6336c;
+      margin-top: 2px;
+    }
+    .total-bar .count {
+      font-size: 10px;
+      color: #888;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="mock-banner">
+  🧪 Phase1 モック（見た目確認用） / 実データは動きません
+</div>
+
+<div class="header">
+  <div class="shop">スナック コレカラ</div>
+  <div class="title">📊 管理ダッシュボード</div>
+  <div class="sub">Phase 1：確認用4機能（モック表示）</div>
+</div>
+
+<!-- タブ -->
+<div class="tabs">
+  <button class="tab active" data-tab="sales">💵 売上</button>
+  <button class="tab" data-tab="attendance">🕒 出勤者</button>
+  <button class="tab" data-tab="miss">⚠️ 打刻漏れ</button>
+  <button class="tab" data-tab="salary">💰 給料</button>
+</div>
+
+<!-- ===== ⑥ 売上ダッシュボード ===== -->
+<div class="tab-pane active" id="pane-sales">
+  <div class="card">
+    <h2>💵 売上ダッシュボード <span class="updated">最終更新 <b id="salesUpdated">21:35:42</b></span></h2>
+
+    <!-- 本日 -->
+    <div class="sales-block today">
+      <div class="sales-label">📅 本日（5/26 火）</div>
+      <div class="sales-amount">¥ 485,000</div>
+      <div class="sales-meta">
+        <span>入力件数 <b>12件</b></span>
+        <span>出勤 <b>4名</b></span>
+      </div>
+    </div>
+
+    <!-- 月次 -->
+    <div class="month-selector-row">
+      <label>📊 月次</label>
+      <select id="monthSel">
+        <option>2026年5月（今月）</option>
+        <option>2026年4月</option>
+        <option>2026年3月</option>
+      </select>
+    </div>
+
+    <div class="sales-block month">
+      <div class="sales-label">2026年 5月 累計</div>
+      <div class="sales-amount">¥ 8,950,000</div>
+      <div class="sales-meta">
+        <span>5/1〜5/26時点</span>
+        <span>日平均 <b>¥344,231</b></span>
+        <span>入力 <b>287件</b></span>
+      </div>
+    </div>
+
+    <!-- 日別グラフ -->
+    <div class="daily-chart">
+      <div class="daily-chart-title">📈 日別売上の推移（5月）</div>
+      <div class="chart-bars" id="chartBars"></div>
+      <div class="chart-labels">
+        <span>5/1</span>
+        <span>5/10</span>
+        <span>5/20</span>
+        <span>5/26</span>
+      </div>
+    </div>
+  </div>
+  <div class="refresh-info">
+    🔄 <b>1分ごと</b>自動更新
+  </div>
+</div>
+
+<!-- ===== ① 出勤者一覧 ===== -->
+<div class="tab-pane" id="pane-attendance" style="display:none;">
+  <div class="card">
+    <h2>🕒 今日の出勤者 <span class="updated">最終更新 <b id="attUpdated">21:35:42</b></span></h2>
+
+    <!-- 出勤中 -->
+    <div class="staff-section">
+      <div class="staff-section-header working">
+        ✅ 出勤中
+        <span>3名</span>
+      </div>
+      <div class="staff-row working">
+        <div>
+          <div class="name">池みゆき</div>
+          <div class="time">🕐 20:00〜</div>
+        </div>
+        <div class="meta">
+          <div><b>¥15,000</b></div>
+          <div class="work-time">1h35m</div>
+        </div>
+      </div>
+      <div class="staff-row working">
+        <div>
+          <div class="name">長谷川楓夏</div>
+          <div class="time">🕐 20:30〜</div>
+        </div>
+        <div class="meta">
+          <div><b>¥10,000</b></div>
+          <div class="work-time">1h05m</div>
+        </div>
+      </div>
+      <div class="staff-row working">
+        <div>
+          <div class="name">堤美伊那</div>
+          <div class="time">🕐 21:00〜</div>
+        </div>
+        <div class="meta">
+          <div><b>¥0</b></div>
+          <div class="work-time">0h35m</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 退勤済 -->
+    <div class="staff-section">
+      <div class="staff-section-header done">
+        🌙 退勤済
+        <span>1名</span>
+      </div>
+      <div class="staff-row done">
+        <div>
+          <div class="name">宮本まほ</div>
+          <div class="time">🕐 19:00〜22:30</div>
+        </div>
+        <div class="meta">
+          <div><b>¥8,000</b></div>
+          <div class="work-time">3h30m</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 未出勤 -->
+    <div class="staff-section">
+      <div class="staff-section-header notyet">
+        ⚠️ 未出勤（シフトあり）
+        <span>2名</span>
+      </div>
+      <div class="staff-row notyet">
+        <div>
+          <div class="name">山田ひより</div>
+          <div class="time">予定 20:00〜02:00</div>
+        </div>
+        <div class="meta">
+          <div style="color:#c62828; font-weight:700;">未打刻</div>
+        </div>
+      </div>
+      <div class="staff-row notyet">
+        <div>
+          <div class="name">多田晴夏</div>
+          <div class="time">予定 20:30〜02:00</div>
+        </div>
+        <div class="meta">
+          <div style="color:#c62828; font-weight:700;">未打刻</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="refresh-info">
+    🔄 <b>1分ごと</b>自動更新
+  </div>
+</div>
+
+<!-- ===== ③ 打刻漏れ一覧 ===== -->
+<div class="tab-pane" id="pane-miss" style="display:none;">
+  <div class="card">
+    <h2>⚠️ 打刻漏れ一覧（5月分）</h2>
+    <div style="font-size:11px; color: #888; margin-bottom:10px;">
+      シフトはあるが出勤打刻なし / 出勤したが退勤打刻なし
+    </div>
+
+    <div class="miss-row">
+      <div class="date">5/12 (火)</div>
+      <div class="name">池みゆき</div>
+      <div class="type">出勤忘れ</div>
+    </div>
+    <div class="miss-row">
+      <div class="date">5/15 (金)</div>
+      <div class="name">長谷川楓夏</div>
+      <div class="type">退勤忘れ</div>
+    </div>
+    <div class="miss-row">
+      <div class="date">5/18 (月)</div>
+      <div class="name">堤美伊那</div>
+      <div class="type">出勤忘れ</div>
+    </div>
+    <div class="miss-row">
+      <div class="date">5/22 (金)</div>
+      <div class="name">山田ひより</div>
+      <div class="type">退勤忘れ</div>
+    </div>
+
+    <div class="total-bar">
+      <div class="label">月間打刻漏れ合計</div>
+      <div class="amount">4 件</div>
+      <div class="count">出勤忘れ 2件 / 退勤忘れ 2件</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ④ 給料一覧 ===== -->
+<div class="tab-pane" id="pane-salary" style="display:none;">
+  <div class="card">
+    <h2>💰 給料一覧</h2>
+
+    <div class="month-selector-row">
+      <label>対象月</label>
+      <select>
+        <option>2026年5月（今月）</option>
+        <option>2026年4月</option>
+        <option>2026年3月</option>
+      </select>
+    </div>
+
+    <div style="font-size:11px; color: #888; margin-bottom:10px;">
+      🔽 タップで内訳を表示
+    </div>
+
+    <!-- 池みゆき（展開済み） -->
+    <div class="salary-row open" data-name="池みゆき">
+      <div class="salary-summary">
+        <div class="name">池みゆき</div>
+        <div class="amount">¥ 186,500</div>
+        <div class="toggle">▶</div>
+      </div>
+      <div class="salary-detail">
+        <div class="detail-line"><span>同伴バック（12組）</span><span>¥ 48,000</span></div>
+        <div class="detail-line"><span>ドンペリ（3.5本）× 20%</span><span>¥ 35,000</span></div>
+        <div class="detail-line"><span>モエ白（5本）× 20%</span><span>¥ 15,000</span></div>
+        <div class="detail-line"><span>集客（28名）</span><span>¥ 14,000</span></div>
+        <div class="detail-line"><span>その他</span><span>¥ 74,500</span></div>
+        <div class="detail-line total"><span>合計</span><span>¥ 186,500</span></div>
+      </div>
+    </div>
+
+    <!-- 残り（未展開） -->
+    <div class="salary-row" data-name="長谷川楓夏">
+      <div class="salary-summary">
+        <div class="name">長谷川楓夏</div>
+        <div class="amount">¥ 142,000</div>
+        <div class="toggle">▶</div>
+      </div>
+      <div class="salary-detail">
+        <div class="detail-line"><span>同伴バック（8組）</span><span>¥ 32,000</span></div>
+        <div class="detail-line"><span>ドンペリ（2本）× 20%</span><span>¥ 20,000</span></div>
+        <div class="detail-line"><span>その他</span><span>¥ 90,000</span></div>
+        <div class="detail-line total"><span>合計</span><span>¥ 142,000</span></div>
+      </div>
+    </div>
+    <div class="salary-row" data-name="堤美伊那">
+      <div class="salary-summary">
+        <div class="name">堤美伊那</div>
+        <div class="amount">¥ 98,500</div>
+        <div class="toggle">▶</div>
+      </div>
+      <div class="salary-detail">
+        <div class="detail-line"><span>同伴バック（5組）</span><span>¥ 20,000</span></div>
+        <div class="detail-line"><span>その他</span><span>¥ 78,500</span></div>
+        <div class="detail-line total"><span>合計</span><span>¥ 98,500</span></div>
+      </div>
+    </div>
+    <div class="salary-row" data-name="宮本まほ">
+      <div class="salary-summary">
+        <div class="name">宮本まほ</div>
+        <div class="amount">¥ 87,200</div>
+        <div class="toggle">▶</div>
+      </div>
+      <div class="salary-detail">
+        <div class="detail-line"><span>同伴バック（4組）</span><span>¥ 16,000</span></div>
+        <div class="detail-line"><span>その他</span><span>¥ 71,200</span></div>
+        <div class="detail-line total"><span>合計</span><span>¥ 87,200</span></div>
+      </div>
+    </div>
+    <div class="salary-row" data-name="山田ひより">
+      <div class="salary-summary">
+        <div class="name">山田ひより</div>
+        <div class="amount">¥ 42,000</div>
+        <div class="toggle">▶</div>
+      </div>
+      <div class="salary-detail">
+        <div class="detail-line"><span>同伴バック（2組）</span><span>¥ 8,000</span></div>
+        <div class="detail-line"><span>その他</span><span>¥ 34,000</span></div>
+        <div class="detail-line total"><span>合計</span><span>¥ 42,000</span></div>
+      </div>
+    </div>
+
+    <div class="total-bar">
+      <div class="label">月間給料合計（19名）</div>
+      <div class="amount">¥ 1,234,500</div>
+      <div class="count">5/1〜5/26時点</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// タブ切り替え
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+    document.querySelectorAll('.tab-pane').forEach(function(x){ x.style.display = 'none'; });
+    t.classList.add('active');
+    document.getElementById('pane-' + t.dataset.tab).style.display = '';
+  });
+});
+
+// 給料の開閉
+document.querySelectorAll('.salary-summary').forEach(function(s){
+  s.addEventListener('click', function(){
+    s.parentElement.classList.toggle('open');
+  });
+});
+
+// 日別グラフ生成（モックデータ）
+(function(){
+  // ダミー数値（5月分26日分）
+  var data = [320, 410, 280, 510, 380, 290, 460, 410, 350, 290,
+              480, 320, 510, 440, 390, 460, 350, 290, 430, 480,
+              520, 410, 360, 480, 510, 485];
+  var max = Math.max.apply(null, data);
+  var container = document.getElementById('chartBars');
+  var html = '';
+  for (var i = 0; i < data.length; i++) {
+    var h = (data[i] / max * 100).toFixed(1);
+    var cls = (i === data.length - 1) ? ' today' : '';
+    var tip = '5/' + (i+1) + ' ¥' + data[i] + 'k';
+    html += '<div class="chart-bar' + cls + '" style="height:' + h + '%;" title="' + tip + '"></div>';
+  }
+  container.innerHTML = html;
+})();
+
+// 時刻表示（モック）
+function updateClock() {
+  var d = new Date();
+  var hms = String(d.getHours()).padStart(2,'0') + ':' +
+            String(d.getMinutes()).padStart(2,'0') + ':' +
+            String(d.getSeconds()).padStart(2,'0');
+  document.getElementById('salesUpdated').textContent = hms;
+  document.getElementById('attUpdated').textContent = hms;
+}
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>

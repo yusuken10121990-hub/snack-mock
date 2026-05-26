@@ -1,0 +1,4288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>スナックコレカラ 運営システム</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+      background: #f5f5f7;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 16px 14px 40px;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.7) 0, transparent 22%),
+        radial-gradient(circle at 85% 75%, rgba(255,255,255,0.55) 0, transparent 25%),
+        radial-gradient(circle at 50% 110%, rgba(255,210,140,0.4) 0, transparent 40%);
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      margin: 8px 0 4px;
+      letter-spacing: 3px;
+      color: #d6336c;
+      text-shadow: 0 2px 6px #fafafa;
+    }
+
+    /* ===== タブ ===== */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 14px 0 18px;
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 4px 12px rgba(214, 51, 108, 0.2);
+    }
+    .tab-btn {
+      padding: 12px 8px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: #888;
+      transition: all 0.2s;
+      letter-spacing: 2px;
+    }
+    .tab-btn.active {
+      background: #d6336c;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ===== サブタブ ===== */
+    .sub-tab-btn {
+      padding: 10px 8px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: #888;
+      transition: all 0.2s;
+      letter-spacing: 1px;
+    }
+    .sub-tab-btn.active {
+      background: #e8f5e9;
+      color: #2e7d32;
+      box-shadow: 0 3px 8px rgba(127, 227, 163, 0.4);
+    }
+    .sub-tab-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .sub-tab-pane { display: none; }
+    .sub-tab-pane.active { display: block; }
+
+    /* ===== 出勤セッション一覧 ===== */
+    .session-list {
+      margin-top: 12px;
+      font-size: 12px;
+    }
+    .session-row {
+      background: #fff4f8;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .session-row .seq {
+      background: #ff6b9d;
+      color: #fff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .session-row.active .seq {
+      background: #34c759;
+    }
+
+    /* ===== 売上入力 アイテムグリッド ===== */
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .item-btn {
+      padding: 12px 4px;
+      border-radius: 10px;
+      border: 2px solid #ffd6e8;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .item-btn:active {
+      transform: scale(0.95);
+    }
+    .item-btn.selected {
+      background: #d6336c;
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    /* ===== 数量プリセットボタン ===== */
+    .qty-preset {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .qty-preset-btn {
+      padding: 10px 0;
+      font-size: 15px;
+      font-weight: 700;
+      border: 2px solid #ffd6e8;
+      background: #fff;
+      color: #1a1a1a;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 0;
+      box-shadow: none;
+      letter-spacing: 0;
+    }
+    .qty-preset-btn.selected {
+      background: #d6336c;
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+    .qty-preset-btn:active { transform: scale(0.95); }
+
+    /* ===== 数量ボタン ===== */
+    .qty-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 70px;
+      gap: 10px;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .qty-btn {
+      padding: 14px 0;
+      font-size: 15px;
+      font-weight: 700;
+      border: 2px solid #ffd6e8;
+      background: #fff;
+      color: #d6336c;
+      border-radius: 12px;
+      cursor: pointer;
+      margin: 0;
+      box-shadow: none;
+      letter-spacing: 0;
+    }
+    .qty-btn:active { background: #ffeef4; transform: scale(0.95); }
+    .qty-display {
+      background: #fff;
+      border: 2px solid #ffd6e8;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #d6336c;
+      padding: 12px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ===== 単位ボタン ===== */
+    .unit-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .unit-btn {
+      padding: 10px 0;
+      border: 2px solid #ffd6e8;
+      background: #fff;
+      color: #1a1a1a;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: none;
+      margin: 0;
+      letter-spacing: 0;
+    }
+    .unit-btn.selected {
+      background: #d6336c;
+      color: #fff;
+      border-color: transparent;
+    }
+
+    /* ===== 売上プレビュー ===== */
+    .sale-preview {
+      margin-top: 14px;
+      padding: 14px;
+      background: #fff8f0;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      color: #888;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .sale-preview .amount {
+      font-size: 22px;
+      color: #d6336c;
+      letter-spacing: 1px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* ===== 本日の売上一覧 ===== */
+    .today-sales {
+      font-size: 13px;
+      color: #555;
+      text-align: center;
+      padding: 12px;
+    }
+    .sale-row {
+      background: #fff4f8;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+    }
+    .sale-row .sale-time {
+      color: #b08a98;
+      font-size: 11px;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .sale-row .sale-item {
+      flex: 1;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .sale-row .sale-amount {
+      color: #d6336c;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    /* ===== 共通カード ===== */
+    .card {
+      background: rgba(255,255,255,0.88);
+      border: 1px solid #ffffff;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 20px;
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(214, 51, 108, 0.2);
+    }
+    .card h2 {
+      font-size: 15px;
+      margin: 0 0 12px;
+      color: #d6336c;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ===== スタッフ画面 ===== */
+    .clock {
+      text-align: center;
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      margin: 6px 0 2px;
+      font-variant-numeric: tabular-nums;
+      color: #d6336c;
+    }
+    .date {
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 18px;
+      font-weight: 500;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: #888;
+      font-weight: 600;
+    }
+    select, input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 14px 12px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 2px solid #ffd6e8;
+      background: #fff;
+      color: #1a1a1a;
+      appearance: none;
+      -webkit-appearance: none;
+      font-weight: 600;
+    }
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path fill='%23d6336c' d='M5 7l5 6 5-6z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: #ff6b9d;
+      box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
+    }
+    .status-box {
+      text-align: center;
+      padding: 14px;
+      border-radius: 12px;
+      margin: 14px 0 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .status-none    { background: #fff4e6; color: #888; }
+    .status-working { background: #e8f5e9; color: #2e7d32; }
+    .status-done    { background: #fff3e0; color: #b06a3a; }
+
+    button {
+      width: 100%;
+      padding: 16px 12px;
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform 0.08s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(214, 51, 108, 0.2);
+      letter-spacing: 2px;
+      color: #fff;
+      margin-top: 10px;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn-row { display: grid; gap: 10px; }
+    .btn-in  {
+      background: #43a047;
+      box-shadow: 0 4px 12px rgba(52, 199, 89, 0.35);
+    }
+    .btn-out {
+      background: #d6336c;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .btn-refresh {
+      background: #fff;
+      color: #d6336c;
+      border: 2px solid #ffd6e8;
+      font-size: 13px;
+      padding: 8px;
+      letter-spacing: 1px;
+      font-weight: 600;
+      box-shadow: none;
+      margin-top: 8px;
+    }
+    .btn-action {
+      background: #7c5ce0;
+      box-shadow: 0 4px 12px rgba(124, 92, 224, 0.3);
+      font-size: 15px;
+      padding: 14px 10px;
+      letter-spacing: 1px;
+    }
+    .btn-action-orange {
+      background: #ff9a3e;
+      box-shadow: 0 4px 12px rgba(255, 154, 62, 0.3);
+    }
+    .btn-action-pink {
+      background: #d6336c;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .btn-big {
+      font-size: 17px;
+      padding: 18px 12px;
+      letter-spacing: 3px;
+      background: #d6336c;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+    .btn-danger {
+      background: #fff;
+      color: #d6336c;
+      border: 2px solid #ffb3c8;
+      box-shadow: none;
+    }
+
+    .msg {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      white-space: pre-line;
+      text-align: left;
+      display: none;
+      font-weight: 600;
+    }
+    .msg.ok    { background: #e8f5e9; color: #2e7d32; display: block; }
+    .msg.err   { background: #ffebee; color: #c62828; display: block; }
+    .msg.info  { background: #fff4e6; color: #888; display: block; }
+
+    /* ===== 管理画面 ===== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .dash-cell {
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      border: 2px solid #ffe9c7;
+    }
+    .dash-cell .label {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .dash-cell .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #d6336c;
+      font-variant-numeric: tabular-nums;
+    }
+    .dash-cell.warn   { border-color: #ffc285; }
+    .dash-cell.warn .value { color: #d97a1a; }
+    .dash-cell.alert  { border-color: #ff8a8a; background: #fff0f0; }
+    .dash-cell.alert .value { color: #c02020; }
+
+    .menu-list {
+      display: grid;
+      gap: 8px;
+    }
+    .menu-item {
+      background: #fff;
+      border: 2px solid #ffd6e8;
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .menu-item:active {
+      background: #ffeef4;
+      transform: scale(0.98);
+    }
+    .menu-item .title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .menu-item .desc {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .menu-item .arrow {
+      color: #d6336c;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .file-upload {
+      position: relative;
+      display: block;
+      width: 100%;
+      padding: 14px 12px;
+      border-radius: 12px;
+      border: 2px dashed #ff9a3e;
+      background: #fff8ee;
+      text-align: center;
+      cursor: pointer;
+      color: #888;
+      font-weight: 700;
+      font-size: 14px;
+      margin: 10px 0 0;
+    }
+
+    /* ===== 月末締めステップ ===== */
+    .step-list {
+      display: grid;
+      gap: 6px;
+    }
+    .step-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0;
+    }
+    .step-check input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #d6336c;
+      cursor: pointer;
+    }
+    .file-upload input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .file-name {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #1a1a1a;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .log-list {
+      max-height: 220px;
+      overflow-y: auto;
+      background: #fffafc;
+      border-radius: 10px;
+      padding: 8px;
+      font-size: 12px;
+      border: 1px solid #e5e5e5;
+    }
+    .log-row {
+      padding: 6px 8px;
+      border-bottom: 1px solid #ffe6ef;
+      display: flex;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .log-row:last-child { border-bottom: none; }
+    .log-time { color: #b08a98; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+    .log-ok   { color: #2e7d32; }
+    .log-err  { color: #c02020; }
+    .log-info { color: #555; }
+
+    .data-table {
+      width: 100%;
+      font-size: 12px;
+      border-collapse: collapse;
+    }
+    .data-table th, .data-table td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid #ffe6ef;
+    }
+    .data-table th {
+      background: #fff4f8;
+      color: #888;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .data-table td { color: #1a1a1a; font-weight: 500; }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #b08a98;
+      margin-top: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* ===== ローディングオーバーレイ ===== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 240, 248, 0.85);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .overlay.show { display: flex; }
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(214, 51, 108, 0.2);
+      border-top-color: #d6336c;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .overlay-text {
+      position: absolute;
+      bottom: 30%;
+      color: #d6336c;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .small { font-size: 11px; color: #888; margin-top: 6px; }
+
+    /* ===== カスタムモーダル（confirm/alert/prompt代替） ===== */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(74, 37, 69, 0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-bg.show { display: flex; }
+    .modal-box {
+      background: #fff;
+      border-radius: 18px;
+      max-width: 380px;
+      width: 100%;
+      padding: 20px 18px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+      animation: modal-pop 0.18s ease-out;
+    }
+    @keyframes modal-pop {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #d6336c;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .modal-message {
+      font-size: 14px;
+      color: #1a1a1a;
+      white-space: pre-line;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 15px;
+      border: 2px solid #ffd6e8;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    .modal-input:focus { outline: none; border-color: #ff6b9d; }
+    .modal-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .modal-btns.single { grid-template-columns: 1fr; }
+    .modal-btn {
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 1px;
+      margin: 0;
+      box-shadow: none;
+    }
+    .modal-btn-cancel {
+      background: #f5f5f5;
+      color: #555;
+    }
+    .modal-btn-ok {
+      background: #d6336c;
+      color: #fff;
+    }
+    .modal-btn-ok.danger {
+      background: #e53935;
+    }
+    .modal-btn:active { transform: scale(0.97); }
+
+    /* ===== Phase4 POSレジ ===== */
+    .pos-newcheck-btn {
+      width: 100%;
+      padding: 14px;
+      background: #d6336c;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .link-back {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 8px;
+      float: right;
+    }
+    .pos-check-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border-left: 4px solid #ff6b9d;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      cursor: pointer;
+    }
+    .pos-check-card:active { transform: scale(0.98); }
+    .pos-check-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .pos-check-table {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+    .pos-check-meta {
+      font-size: 11px;
+      color: #888;
+      text-align: right;
+    }
+    .pos-check-staff {
+      font-size: 11px;
+      color: #d6336c;
+      margin: 6px 0;
+    }
+    .pos-check-amount {
+      text-align: right;
+      font-size: 16px;
+      font-weight: 800;
+      color: #d6336c;
+    }
+
+    .pos-form-section { margin-bottom: 16px; }
+    .pos-form-label {
+      font-size: 11px;
+      color: #888;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .pos-table-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .pos-table-btn {
+      padding: 12px 6px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a1a;
+      cursor: pointer;
+    }
+    .pos-table-btn.selected {
+      background: #d6336c;
+      color: #fff;
+      border-color: transparent;
+    }
+    .pos-table-btn.occupied {
+      background: #ffebee;
+      color: #c62828;
+      border-color: #ffcdd2;
+      cursor: not-allowed;
+    }
+    .pos-table-btn.occupied small {
+      display: block;
+      font-size: 9px;
+      font-weight: 400;
+    }
+
+    .pos-count-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+    .pos-count-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #ffd6e8;
+      background: #fff;
+      font-size: 18px;
+      font-weight: 800;
+      color: #d6336c;
+      cursor: pointer;
+    }
+    .pos-count-display {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1a1a1a;
+      min-width: 70px;
+      text-align: center;
+    }
+    .pos-count-display .unit {
+      font-size: 14px;
+      color: #888;
+      margin-left: 4px;
+    }
+
+    .pos-staff-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .pos-staff-chip {
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #1a1a1a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pos-staff-chip.selected {
+      background: #d6336c;
+      color: #fff;
+      border-color: transparent;
+    }
+    .pos-staff-chip .check {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #d6336c;
+    }
+    .pos-staff-chip.selected .check {
+      background: #fff;
+      border-color: #fff;
+    }
+
+    .pos-charge-box {
+      background: #fff8f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .pos-charge-box .label {
+      font-size: 11px; color: #888;
+    }
+    .pos-charge-box .amount {
+      font-size: 18px;
+      font-weight: 800;
+      color: #e65100;
+      margin-top: 2px;
+    }
+
+    .pos-order-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      border-left: 3px solid #e5e5e5;
+    }
+    .pos-order-row.champagne { border-left-color: #ff9a3e; background: #fff8f0; }
+    .pos-order-row .name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+    .pos-order-row .qty {
+      font-size: 11px;
+      color: #888;
+      padding: 2px 8px;
+      background: #f5f5f7;
+      border-radius: 8px;
+    }
+    .pos-order-row .price {
+      font-size: 13px;
+      font-weight: 800;
+      color: #d6336c;
+      min-width: 60px;
+      text-align: right;
+    }
+    .pos-order-row .back-to {
+      grid-column: 1 / -1;
+      font-size: 10px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .pos-order-row .back-to b {
+      color: #ff9a3e;
+    }
+    .pos-order-row .del-btn {
+      grid-column: 1 / -1;
+      font-size: 10px;
+      color: #c62828;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: right;
+      padding: 2px;
+    }
+
+    .pos-submit-bar {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      border-top: 1px solid #ffd6e8;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+      margin: 0 -14px -20px;
+    }
+    .pos-submit-bar .total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+    .pos-submit-bar .total .label { font-size: 12px; color: #888; }
+    .pos-submit-bar .total .amount {
+      font-size: 22px;
+      font-weight: 800;
+      color: #d6336c;
+    }
+    .pos-submit-bar .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 2fr;
+      gap: 6px;
+    }
+    .pos-submit-bar button {
+      padding: 12px 6px;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pos-submit-bar .btn-cancel {
+      background: #fff;
+      color: #c62828;
+      border: 1.5px solid #ffcdd2;
+    }
+    .pos-submit-bar .btn-save {
+      background: #fff;
+      color: #d6336c;
+      border: 1px solid #e5e5e5;
+    }
+    .pos-submit-bar .btn-checkout {
+      background: #d6336c;
+      color: #fff;
+    }
+
+    .pos-modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .pos-modal-bg.show { display: flex; }
+    .pos-modal {
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      padding: 20px 16px 30px;
+      max-width: 540px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .pos-modal h3 {
+      font-size: 16px;
+      color: #d6336c;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pos-modal h3 .close {
+      font-size: 18px;
+      color: #888;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    .pos-menu-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .pos-menu-tab {
+      padding: 8px 4px;
+      background: #f5f5f7;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      cursor: pointer;
+      text-align: center;
+    }
+    .pos-menu-tab.active {
+      background: #d6336c;
+      color: #fff;
+      border-color: transparent;
+    }
+    .pos-menu-list {
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .pos-menu-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+    .pos-menu-item .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .pos-menu-item .price {
+      font-size: 13px;
+      font-weight: 800;
+      color: #d6336c;
+    }
+    .pos-menu-item .back-tag {
+      font-size: 10px;
+      color: #ff9a3e;
+      margin-top: 2px;
+    }
+    .pos-back-select {
+      padding: 14px;
+      background: #fff8f0;
+      border-radius: 10px;
+      margin-top: 12px;
+    }
+    .pos-back-select-title {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    /* ===== Phase1 管理ダッシュボード ===== */
+    .ph1-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+      background: #fafafa;
+      padding: 6px;
+      border-radius: 14px;
+    }
+    .ph1-tab {
+      padding: 10px 4px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      box-shadow: none;
+      margin: 0;
+    }
+    .ph1-tab.active {
+      background: #d6336c;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+    .ph1-pane { display: none; }
+    .ph1-pane.active { display: block; }
+
+    .updated { font-size: 10px; color: #888; font-weight: 400; }
+    .updated b { color: #d6336c; }
+
+    /* 売上ブロック */
+    .sales-block {
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .sales-block.today { background: #fafafa; }
+    .sales-block.month { background: #fff8f0; }
+    .sales-label {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 3px;
+      margin-bottom: 6px;
+    }
+    .sales-amount {
+      font-size: 32px;
+      font-weight: 800;
+      color: #d6336c;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .sales-meta {
+      font-size: 11px;
+      color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .sales-meta b { color: #d6336c; }
+
+    .month-selector-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .month-selector-row label {
+      font-size: 11px;
+      color: #888;
+      flex-shrink: 0;
+    }
+    .month-selector-row select {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #1a1a1a;
+      background: #fff;
+    }
+
+    .daily-chart {
+      margin-top: 14px;
+      background: #fafafa;
+      padding: 12px;
+      border-radius: 10px;
+    }
+    .daily-chart-title {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 80px;
+    }
+    .chart-bar {
+      flex: 1;
+      background: #d6336c;
+      border-radius: 2px 2px 0 0;
+      min-height: 2px;
+    }
+    .chart-bar.today {
+      background: #d6336c;
+      box-shadow: 0 0 8px rgba(214, 51, 108, 0.2);
+    }
+    .chart-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .refresh-info {
+      text-align: center;
+      font-size: 10px;
+      color: #888;
+      margin: -8px 0 12px;
+    }
+    .refresh-info b { color: #d6336c; }
+
+    /* スタッフリスト */
+    .ph1-staff-section { margin-bottom: 12px; }
+    .ph1-staff-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: #fafafa;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .ph1-staff-section-header.working { color: #2e7d32; }
+    .ph1-staff-section-header.done    { color: #1565c0; }
+    .ph1-staff-section-header.notyet  { color: #c62828; }
+
+    .ph1-staff-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+    .ph1-staff-row.working { border-left: 3px solid #43a047; }
+    .ph1-staff-row.done    { border-left: 3px solid #1976d2; }
+    .ph1-staff-row.notyet  { border-left: 3px solid #e53935; opacity: 0.85; }
+    .ph1-staff-row .name { font-weight: 700; color: #1a1a1a; }
+    .ph1-staff-row .time { font-size: 11px; color: #888; margin-top: 2px; }
+    .ph1-staff-row .meta { text-align: right; font-size: 11px; color: #1a1a1a; }
+    .ph1-staff-row .meta b { color: #d6336c; font-size: 13px; }
+    .ph1-staff-row .meta .work-time { font-size: 10px; color: #888; margin-top: 2px; }
+
+    /* 打刻漏れ */
+    .miss-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: #f5f5f7;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      font-size: 12px;
+      border-left: 3px solid #ff9a3e;
+    }
+    .miss-row .date { font-weight: 700; color: #d6336c; }
+    .miss-row .name { color: #1a1a1a; }
+    .miss-row .type {
+      font-size: 10px;
+      color: #888;
+      background: #fff3e0;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .miss-row .type.out { background: #ffebee; color: #c62828; }
+    .empty-msg {
+      text-align: center;
+      padding: 24px;
+      color: #888;
+      font-size: 12px;
+    }
+
+    /* 給料一覧 */
+    .salary-row {
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      overflow: hidden;
+    }
+    .salary-summary {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+    .salary-summary .name { font-weight: 700; color: #1a1a1a; font-size: 13px; }
+    .salary-summary .amount { font-size: 15px; font-weight: 800; color: #d6336c; }
+    .salary-summary .toggle {
+      color: #888;
+      font-size: 11px;
+      transition: transform 0.15s;
+    }
+    .salary-row.open .toggle { transform: rotate(90deg); }
+    .salary-detail {
+      display: none;
+      padding: 10px 14px 14px;
+      border-top: 1px dashed #ffd6e8;
+      background: #fafafa;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .salary-row.open .salary-detail { display: block; }
+    .detail-line {
+      display: flex;
+      justify-content: space-between;
+      color: #1a1a1a;
+    }
+    .detail-line.total {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #ffd6e8;
+      font-weight: 700;
+      color: #d6336c;
+    }
+
+    .total-bar {
+      background: #fff8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .total-bar .label {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 2px;
+    }
+    .total-bar .amount {
+      font-size: 20px;
+      font-weight: 800;
+      color: #d6336c;
+      margin-top: 2px;
+    }
+    .total-bar .count {
+      font-size: 10px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* ===== PIN認証 ===== */
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin: 16px 0 10px;
+    }
+    .pin-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #ff6b9d;
+      background: #fff;
+      transition: all 0.15s;
+    }
+    .pin-dot.filled {
+      background: #d6336c;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .pin-pad {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    .pin-key {
+      padding: 18px 0;
+      font-size: 22px;
+      font-weight: 700;
+      border: 2px solid #ffd6e8;
+      background: #fff;
+      color: #1a1a1a;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: none;
+      letter-spacing: 0;
+      margin: 0;
+      transition: transform 0.05s;
+    }
+    .pin-key:active {
+      background: #ffeef4;
+      transform: scale(0.92);
+    }
+    .pin-key-fn {
+      font-size: 13px;
+      background: #f5f5f7;
+      color: #d6336c;
+      letter-spacing: 1px;
+    }
+    .pin-key-fn:active {
+      background: #ffd6e8;
+    }
+    .btn-logout {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #fff;
+      border: 2px solid #ff9a3e;
+      color: #ff9a3e;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 0;
+      box-shadow: none;
+      letter-spacing: 0;
+    }
+    .btn-logout:active {
+      background: #fff5e6;
+      transform: scale(0.96);
+    }
+
+    /* ===== シフトカレンダー（管理画面用に残す） ===== */
+    .shift-matrix-wrap {
+      overflow-x: auto;
+      background: rgba(255,255,255,0.7);
+      border-radius: 12px;
+      padding: 8px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .shift-matrix {
+      border-collapse: collapse;
+      font-size: 11px;
+      width: max-content;
+    }
+    .shift-matrix th, .shift-matrix td {
+      border: 1px solid #e5e5e5;
+      padding: 6px 4px;
+      text-align: center;
+      white-space: nowrap;
+      background: #fff;
+    }
+    .shift-matrix thead th {
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .shift-matrix thead th.sun { background: #ffebee; color: #c62828; }
+    .shift-matrix thead th.sat { background: #e3f2fd; color: #1565c0; }
+    .shift-matrix tbody th {
+      background: #f5f5f7;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      font-weight: 700;
+      color: #1a1a1a;
+      text-align: left;
+      padding-left: 8px;
+      padding-right: 12px;
+    }
+    .shift-matrix td.shift-cell {
+      min-width: 38px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .shift-matrix td.shift-cell:active { transform: scale(0.95); }
+    .shift-matrix td.req-ok    { background: #f1f8e9; color: #43a047; }
+    .shift-matrix td.req-maybe { background: #fffde7; color: #f9a825; }
+    .shift-matrix td.req-ng    { background: #fce4ec; color: #e53935; }
+    .shift-matrix td.req-time  { background: #e8eaf6; color: #1976d2; font-size: 9px; }
+    .shift-matrix td.confirmed {
+      background: #fafafa;
+      box-shadow: inset 0 0 0 2px #ff6b9d;
+      color: #d6336c;
+    }
+
+    /* ===== トースト通知 ===== */
+    .toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #fff;
+      color: #1a1a1a;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 1100;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      max-width: 90vw;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .toast.err  { background: #ffebee; color: #c62828; }
+    .toast.ok   { background: #e8f5e9; color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay">
+    <div class="spinner"></div>
+    <div class="overlay-text" id="overlayText">処理中...</div>
+  </div>
+
+  <!-- カスタムモーダル -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal-box">
+      <div class="modal-title" id="modalTitle">確認</div>
+      <div class="modal-message" id="modalMessage"></div>
+      <input type="text" class="modal-input" id="modalInput" style="display:none;">
+      <div class="modal-btns" id="modalBtns">
+        <button class="modal-btn modal-btn-cancel" id="modalCancel">キャンセル</button>
+        <button class="modal-btn modal-btn-ok" id="modalOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト -->
+  <div class="toast" id="toast"></div>
+
+  <div class="container">
+    <h1>スナックコレカラ</h1>
+
+    <!-- タブ -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="staff">👤 スタッフ</button>
+      <button class="tab-btn"        data-tab="pos">🍾 レジ</button>
+      <button class="tab-btn"        data-tab="admin">⚙️ 管理</button>
+    </div>
+
+    <!-- ============================== -->
+    <!-- スタッフ画面（PIN認証）         -->
+    <!-- ============================== -->
+    <div class="tab-pane active" id="pane-staff">
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="date" id="date">----年--月--日</div>
+
+      <!-- ===== ① PIN ログイン画面 ===== -->
+      <div id="pinLoginCard" class="card">
+        <div style="text-align:center; margin-bottom:14px;">
+          <div style="font-size:13px; color: #888; letter-spacing:3px;">PIN を入力</div>
+          <div class="pin-dots" id="pinDots">
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+          </div>
+          <div id="pinMsg" class="msg" style="margin-top:4px;"></div>
+        </div>
+
+        <div class="pin-pad" id="pinPad">
+          <button class="pin-key" data-key="1">1</button>
+          <button class="pin-key" data-key="2">2</button>
+          <button class="pin-key" data-key="3">3</button>
+          <button class="pin-key" data-key="4">4</button>
+          <button class="pin-key" data-key="5">5</button>
+          <button class="pin-key" data-key="6">6</button>
+          <button class="pin-key" data-key="7">7</button>
+          <button class="pin-key" data-key="8">8</button>
+          <button class="pin-key" data-key="9">9</button>
+          <button class="pin-key pin-key-fn" data-key="setup">初回設定</button>
+          <button class="pin-key" data-key="0">0</button>
+          <button class="pin-key pin-key-fn" data-key="del">⌫</button>
+        </div>
+      </div>
+
+      <!-- ===== ② 初回PIN設定画面 ===== -->
+      <div id="pinSetupCard" class="card" style="display:none;">
+        <h2>🔐 初回PIN設定</h2>
+        <div id="pinSetupStep1">
+          <label>スタッフ名を選んでください</label>
+          <select id="pinSetupName"><option value="">読み込み中...</option></select>
+          <button class="btn-action" id="btnPinSetupNext" style="margin-top:10px;">次へ ▶</button>
+          <button class="btn-refresh" id="btnPinSetupCancel" style="margin-top:6px;">キャンセル</button>
+        </div>
+
+        <div id="pinSetupStep2" style="display:none;">
+          <div style="text-align:center; margin-bottom:10px;">
+            <div style="font-size:12px; color: #888;">PIN を設定（4桁の数字）</div>
+            <div id="pinSetupNameLabel" style="font-size:14px; font-weight:700; color: #1a1a1a; margin-top:4px;"></div>
+            <div class="pin-dots" id="pinSetupDots">
+              <span class="pin-dot"></span><span class="pin-dot"></span>
+              <span class="pin-dot"></span><span class="pin-dot"></span>
+            </div>
+            <div id="pinSetupMsg" class="msg"></div>
+          </div>
+          <div class="pin-pad" id="pinSetupPad">
+            <button class="pin-key" data-key="1">1</button>
+            <button class="pin-key" data-key="2">2</button>
+            <button class="pin-key" data-key="3">3</button>
+            <button class="pin-key" data-key="4">4</button>
+            <button class="pin-key" data-key="5">5</button>
+            <button class="pin-key" data-key="6">6</button>
+            <button class="pin-key" data-key="7">7</button>
+            <button class="pin-key" data-key="8">8</button>
+            <button class="pin-key" data-key="9">9</button>
+            <button class="pin-key pin-key-fn" data-key="back">← 戻る</button>
+            <button class="pin-key" data-key="0">0</button>
+            <button class="pin-key pin-key-fn" data-key="del">⌫</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ③ ログイン後の個人画面 ===== -->
+      <div id="staffMainArea" style="display:none;">
+        <div class="card" style="display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-size:11px; color: #888; letter-spacing:2px;">ログイン中</div>
+            <div id="currentStaffName" style="font-size:20px; font-weight:800; color: #1a1a1a;">—</div>
+          </div>
+          <button id="btnLogout" class="btn-logout">← ログアウト</button>
+        </div>
+
+        <div class="card">
+          <div id="statusBox" class="status-box status-none">読み込み中...</div>
+          <div id="idleTimerBox" style="display:none; font-size:11px; color: #888; margin-top:6px; text-align:center;">
+            ⏱ 出勤打刻していません。<span id="idleTimerText">3:00</span> 後に自動ログアウト
+          </div>
+        </div>
+
+        <!-- サブタブ -->
+        <div class="tab-bar" style="margin: 14px 0 10px;">
+          <button class="sub-tab-btn active" data-subtab="clock">🕒 勤怠</button>
+          <button class="sub-tab-btn" data-subtab="sale" id="subtabSale">💰 売上入力</button>
+        </div>
+
+        <!-- 勤怠サブタブ -->
+        <div class="sub-tab-pane active" id="subpane-clock">
+          <div class="card">
+            <div class="btn-row">
+              <button id="btnIn"  class="btn-in"  disabled>出 勤</button>
+              <button id="btnOut" class="btn-out" disabled>退 勤</button>
+              <button id="btnRefresh" class="btn-refresh">↻ 最新状態に更新</button>
+            </div>
+            <div id="msg" class="msg"></div>
+            <div id="sessionList" class="session-list"></div>
+          </div>
+        </div>
+
+        <!-- 売上入力サブタブ -->
+        <div class="sub-tab-pane" id="subpane-sale">
+          <div class="card" id="saleLockedCard">
+            <div style="text-align:center; padding: 20px 10px; color: #888;">
+              <div style="font-size:32px; margin-bottom:8px;">🔒</div>
+              <div style="font-weight:700; font-size:14px;">出勤中のスタッフのみ売上入力できます</div>
+              <div style="font-size:12px; margin-top:6px; opacity:0.8;">先に「勤怠」タブから出勤打刻してください</div>
+            </div>
+          </div>
+
+          <div id="saleContent" style="display:none;">
+            <div class="card">
+              <h2>💰 売上を入力</h2>
+
+              <label>項目を選択</label>
+              <div class="item-grid" id="itemGrid"></div>
+
+              <label style="margin-top:14px;">数量(よく使う値)</label>
+              <div class="qty-preset" id="qtyPreset">
+                <button class="qty-preset-btn" type="button" data-qty="0.5">0.5</button>
+                <button class="qty-preset-btn" type="button" data-qty="1">1</button>
+                <button class="qty-preset-btn" type="button" data-qty="1.5">1.5</button>
+                <button class="qty-preset-btn" type="button" data-qty="2">2</button>
+                <button class="qty-preset-btn" type="button" data-qty="3">3</button>
+              </div>
+              <div class="qty-row" style="margin-top:8px;">
+                <button class="qty-btn" id="qtyMinus" type="button">−0.5</button>
+                <div class="qty-display" id="qtyDisplay">1</div>
+                <button class="qty-btn" id="qtyPlus" type="button">+0.5</button>
+              </div>
+
+              <label style="margin-top:14px;">単位</label>
+              <div class="unit-row" id="unitRow"></div>
+
+              <label style="margin-top:14px;">名・組（任意）</label>
+              <input type="text" id="saleMemo" placeholder="例：田中組" maxlength="40">
+
+              <div class="sale-preview" id="salePreview">項目を選んでください</div>
+
+              <button id="btnSubmitSale" class="btn-big" disabled>📤 売上を送信</button>
+              <div id="saleMsg" class="msg"></div>
+            </div>
+
+            <div class="card">
+              <h2>📋 本日の入力履歴</h2>
+              <div id="todaySalesList" class="today-sales">まだ入力はありません</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 隠し要素：従来コードが参照する staffSelect の互換用 -->
+      <input type="hidden" id="staffSelect" value="">
+    </div>
+
+    <!-- ============================== -->
+    <!-- POSレジ画面                     -->
+    <!-- ============================== -->
+    <div class="tab-pane" id="pane-pos">
+
+      <!-- ビュー切替（一覧/新規/詳細） -->
+      <div id="pos-view-list">
+        <button class="pos-newcheck-btn" onclick="posShowNewCheck()">
+          ➕ 新規伝票を作成
+        </button>
+        <div class="card">
+          <h2>📋 営業中の伝票 <span id="posOpenCount" class="updated"></span></h2>
+          <div id="posOpenList">
+            <div class="empty-msg">読み込み中...</div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>✅ 本日の会計済</h2>
+          <div id="posTodayStats" style="font-size:13px; color: #1a1a1a; padding:8px 0;">
+            読み込み中...
+          </div>
+        </div>
+      </div>
+
+      <!-- 新規伝票フォーム -->
+      <div id="pos-view-new" style="display:none;">
+        <div class="card">
+          <h2>🆕 新規伝票 <button class="link-back" onclick="posShowList()">← 戻る</button></h2>
+
+          <div class="pos-form-section">
+            <div class="pos-form-label">📍 テーブル</div>
+            <div class="pos-table-grid" id="posTableGrid"></div>
+          </div>
+
+          <div class="pos-form-section">
+            <div class="pos-form-label">👥 人数</div>
+            <div class="pos-count-row">
+              <button class="pos-count-btn" onclick="posChangeCount(-1)">−</button>
+              <div class="pos-count-display"><span id="posCountNum">2</span><span class="unit">名</span></div>
+              <button class="pos-count-btn" onclick="posChangeCount(1)">+</button>
+            </div>
+          </div>
+
+          <div class="pos-form-section">
+            <div class="pos-form-label">💡 指名（複数選択可）</div>
+            <div class="pos-staff-grid" id="posStaffGrid"></div>
+          </div>
+
+          <div class="pos-form-section">
+            <div class="pos-form-label">💰 自動計算</div>
+            <div class="pos-charge-box">
+              <div class="label">チャージ（一律 ¥1,500/名）</div>
+              <div class="amount"><span id="posChargeNum">2</span>名 × ¥1,500 = ¥<span id="posChargeAmt">3,000</span></div>
+            </div>
+          </div>
+
+          <button class="pos-newcheck-btn" onclick="posCreateNewCheck()">
+            📋 この内容で伝票を開く
+          </button>
+        </div>
+      </div>
+
+      <!-- 伝票詳細 -->
+      <div id="pos-view-detail" style="display:none;">
+        <div class="card">
+          <h2 id="posDetailTitle">📋 -</h2>
+          <div id="posDetailMeta" style="font-size:12px; color:#d6336c; font-weight:700; margin-bottom:12px;"></div>
+
+          <button class="pos-newcheck-btn" style="background:#fff; color:#d6336c; border: 2px dashed #ff9a3e; margin-bottom:12px;" onclick="posShowMenuModal()">
+            ➕ メニューから追加
+          </button>
+
+          <div class="pos-form-label">💰 オーダー内容</div>
+          <div id="posOrderList"></div>
+        </div>
+
+        <!-- 下部の合計・会計バー -->
+        <div class="pos-submit-bar" id="posSubmitBar">
+          <div class="total">
+            <span class="label">合計</span>
+            <span class="amount" id="posTotalAmt">¥ 0</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn-cancel" onclick="posCancelCurrent()">❌ 取消</button>
+            <button class="btn-save" onclick="posSaveCurrent()">💾 保存</button>
+            <button class="btn-checkout" onclick="posCheckoutCurrent()">🧾 会計</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- メニューモーダル -->
+      <div class="pos-modal-bg" id="posMenuModal">
+        <div class="pos-modal">
+          <h3>🍽️ メニューを選ぶ <button class="close" onclick="posCloseMenuModal()">×</button></h3>
+          <div class="pos-menu-tabs">
+            <div class="pos-menu-tab active" data-menutab="champagne">🍾シャンパン</div>
+            <div class="pos-menu-tab" data-menutab="drink">🥃ドリンク</div>
+            <div class="pos-menu-tab" data-menutab="special">🌸特別</div>
+          </div>
+          <div id="posMenuList" class="pos-menu-list"></div>
+        </div>
+      </div>
+
+      <!-- バック先選択モーダル -->
+      <div class="pos-modal-bg" id="posBackModal">
+        <div class="pos-modal">
+          <h3>👤 バック先を選択 <button class="close" onclick="posCloseBackModal()">×</button></h3>
+          <div style="font-size:12px; color: #888; margin-bottom:10px;">
+            <b id="posBackItemName">-</b> <span id="posBackItemPrice">-</span> のバック先
+          </div>
+          <div class="pos-back-select">
+            <div class="pos-back-select-title">スタッフを選ぶ</div>
+            <div class="pos-staff-grid" id="posBackStaffGrid"></div>
+          </div>
+          <button class="pos-newcheck-btn" style="margin-top:14px;" onclick="posConfirmBack()">
+            ✅ この内容で追加
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- 管理画面                        -->
+    <!-- ============================== -->
+    <div class="tab-pane" id="pane-admin">
+
+      <!-- ログイン前 -->
+      <div id="loginCard" class="card">
+        <h2>🔒 管理者ログイン</h2>
+        <label for="adminPw">パスワード</label>
+        <input type="password" id="adminPw" placeholder="パスワードを入力">
+        <button id="btnLogin" class="btn-action">ログイン</button>
+        <div id="loginMsg" class="msg"></div>
+      </div>
+
+      <!-- ログイン後 -->
+      <div id="adminContent" style="display:none;">
+
+        <!-- ===== Phase1: 新ダッシュボード ===== -->
+
+        <!-- サブタブ -->
+        <div class="ph1-tabs">
+          <button class="ph1-tab active" data-ph1tab="sales">💵 売上</button>
+          <button class="ph1-tab" data-ph1tab="attendance">🕒 出勤者</button>
+          <button class="ph1-tab" data-ph1tab="miss">⚠️ 打刻漏れ</button>
+          <button class="ph1-tab" data-ph1tab="salary">💰 給料</button>
+        </div>
+
+        <!-- 💵 売上ダッシュボード -->
+        <div class="ph1-pane active" id="ph1-pane-sales">
+          <div class="card">
+            <h2>💵 売上ダッシュボード <span class="updated">最終更新 <b id="salesUpdated">--:--:--</b></span></h2>
+
+            <div class="sales-block today">
+              <div class="sales-label">📅 本日</div>
+              <div class="sales-amount" id="todaySalesAmt">¥ 0</div>
+              <div class="sales-meta">
+                <span>入力件数 <b id="todaySalesCount">0件</b></span>
+                <span>出勤 <b id="todayStaffCount">0名</b></span>
+              </div>
+            </div>
+
+            <div class="month-selector-row">
+              <label>📊 月次</label>
+              <select id="salesMonthSel"></select>
+            </div>
+
+            <div class="sales-block month">
+              <div class="sales-label" id="monthSalesLabel">月次累計</div>
+              <div class="sales-amount" id="monthSalesAmt">¥ 0</div>
+              <div class="sales-meta">
+                <span id="monthSalesPeriod">-</span>
+                <span>日平均 <b id="monthSalesAvg">¥0</b></span>
+                <span>入力 <b id="monthSalesCount">0件</b></span>
+              </div>
+            </div>
+
+            <div class="daily-chart">
+              <div class="daily-chart-title">📈 日別売上の推移</div>
+              <div class="chart-bars" id="dailyChartBars"></div>
+              <div class="chart-labels" id="dailyChartLabels"></div>
+            </div>
+          </div>
+          <div class="refresh-info">🔄 <b>1分ごと</b>自動更新</div>
+        </div>
+
+        <!-- 🕒 出勤者一覧 -->
+        <div class="ph1-pane" id="ph1-pane-attendance">
+          <div class="card">
+            <h2>🕒 今日の出勤者 <span class="updated">最終更新 <b id="attUpdated">--:--:--</b></span></h2>
+            <div id="attendanceListArea">
+              <div class="empty-msg">読み込み中...</div>
+            </div>
+          </div>
+          <div class="refresh-info">🔄 <b>1分ごと</b>自動更新</div>
+        </div>
+
+        <!-- ⚠️ 打刻漏れ一覧 -->
+        <div class="ph1-pane" id="ph1-pane-miss">
+          <div class="card">
+            <h2>⚠️ 打刻漏れ一覧（本月分）</h2>
+            <div style="font-size:11px; color: #888; margin-bottom:10px;">
+              シフトはあるが出勤打刻なし / 出勤したが退勤打刻なし
+            </div>
+            <button class="btn-action" data-act="loadMissingPunches">🔄 打刻漏れを読み込み</button>
+            <div id="missingPunchArea" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- 💰 給料一覧 -->
+        <div class="ph1-pane" id="ph1-pane-salary">
+          <div class="card">
+            <h2>💰 給料一覧</h2>
+            <div class="month-selector-row">
+              <label>対象月</label>
+              <select id="salaryMonthSel"></select>
+            </div>
+            <div style="font-size:11px; color: #888; margin-bottom:10px;">
+              🔽 タップで内訳を表示
+            </div>
+            <div id="salaryListArea">
+              <div class="empty-msg">読み込み中...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- サンプルデータ -->
+        <div class="card" style="border: 2px dashed #ff9a3e;">
+          <h2>🧪 サンプルデータ（動作確認用）</h2>
+          <div class="small" style="margin-bottom:10px;">在籍スタッフ全員 × 指定月数分のリアルなダミーデータを生成します。1日複数出勤・売上もランダム生成されます。</div>
+
+          <label>生成する月数（1〜6）</label>
+          <input type="number" id="sampleMonths" value="3" min="1" max="6">
+
+          <button class="btn-action-orange" data-act="genSample" style="margin-top:10px;">🧪 サンプルデータを生成</button>
+
+          <div style="height:10px"></div>
+          <button class="btn-danger" data-act="clearSample">🧹 月別DBを全クリア</button>
+          <div class="small" style="margin-top:6px; color: #c62828;">⚠️ 「DB_YYYYMM」シートをすべて削除します</div>
+        </div>
+
+        <!-- PIN管理 -->
+        <div class="card">
+          <h2>🔐 PIN管理</h2>
+          <div class="small" style="margin-bottom:10px;">スタッフのPIN設定状況の確認、ロック解除、PINリセットができます。</div>
+          <button class="btn-action" data-act="loadPinStatus">🔄 PIN状況を読み込み</button>
+          <div id="pinStatusArea" style="margin-top:12px;"></div>
+        </div>
+
+        <!-- シフト管理 -->
+        <div class="card">
+          <h2>📅 シフト管理</h2>
+          <div class="small" style="margin-bottom:10px;">スタッフが提出したシフト希望を確認し、出勤決定をGoogleカレンダーに反映します。</div>
+
+          <!-- 現在の反映先カレンダー表示 -->
+          <div id="calendarInfoBox" style="background:#fafafa; border-radius:10px; padding:10px 14px; margin-bottom:10px; border-left: 3px solid #ff9a3e; font-size:12px;">
+            <div style="color: #888; font-size:11px; letter-spacing:1px;">📅 反映先カレンダー</div>
+            <div id="calendarInfoText" style="font-weight:700; color: #1a1a1a; margin-top:2px;">確認中...</div>
+            <div style="margin-top:4px; font-size:11px; color: #888;">
+              変更：スプレッドシートのメニュー「📅 シフト反映カレンダーIDを設定」
+            </div>
+          </div>
+
+          <label>対象月</label>
+          <select id="adminShiftMonth"></select>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+            <button class="btn-action" data-act="loadShiftMatrix">🔄 シフト一覧を読込</button>
+            <button class="btn-action-orange" data-act="sendShiftReminder">📧 リマインダー送信</button>
+          </div>
+
+          <div style="margin-top:14px; padding:12px; background:#fafafa; border-radius:10px;">
+            <label style="margin:0;">提出期限を設定</label>
+            <div style="display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:6px;">
+              <input type="date" id="adminShiftDeadline">
+              <button class="btn-action" data-act="setShiftDeadline" style="padding:10px 16px;">設定</button>
+            </div>
+          </div>
+
+          <!-- マトリクス表示エリア -->
+          <div id="shiftMatrixArea" style="margin-top:14px; display:none;">
+            <div style="font-size:12px; color: #888; margin-bottom:6px;">
+              セルをタップで状態切替（○→△→×→⏰→確定→クリア）
+            </div>
+            <div class="shift-matrix-wrap">
+              <table class="shift-matrix" id="shiftMatrixTable"></table>
+            </div>
+            <button class="btn-big" data-act="saveShiftConfirm" style="margin-top:12px;">
+              💾 出勤決定を保存（Googleカレンダー反映）
+            </button>
+          </div>
+        </div>
+
+        <!-- 処理ログ -->
+        <div class="card">
+          <h2>📝 処理ログ <span class="small" style="font-weight:500;margin-left:4px;">（このセッション内）</span></h2>
+          <div class="log-list" id="logList">
+            <div class="log-row log-info"><span class="log-time">--:--</span><span>ログイン待機中</span></div>
+          </div>
+        </div>
+
+        <!-- 結果表示エリア -->
+        <div id="adminResult"></div>
+
+        <button id="btnLogout" class="btn-danger" style="margin-top:8px;">🔓 ログアウト</button>
+      </div>
+    </div>
+
+    <div class="footer">スナックコレカラ 運営管理システム</div>
+  </div>
+
+<script>
+/* =====================================================
+   共通ユーティリティ
+   ===================================================== */
+function $(id) { return document.getElementById(id); }
+function pad(n) { return String(n).padStart(2, '0'); }
+function nowHm() { var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+function showOverlay(text) {
+  $('overlayText').textContent = text || '処理中...';
+  $('overlay').classList.add('show');
+}
+function hideOverlay() {
+  $('overlay').classList.remove('show');
+}
+
+/* =====================================================
+   カスタムモーダル（confirm/alert/prompt の代替）
+   - sandbox環境（Claude artifactsなど）でも動く
+   - Promise ベースで使いやすい
+   ===================================================== */
+function showModal(opts) {
+  // opts: { title, message, type: 'confirm'|'alert'|'prompt', okText, cancelText, danger, defaultValue }
+  return new Promise(function(resolve){
+    var bg = $('modalBg');
+    var input = $('modalInput');
+    var okBtn = $('modalOk');
+    var cancelBtn = $('modalCancel');
+    var btns = $('modalBtns');
+
+    $('modalTitle').textContent = opts.title || '確認';
+    $('modalMessage').textContent = opts.message || '';
+
+    if (opts.type === 'prompt') {
+      input.style.display = '';
+      input.value = opts.defaultValue || '';
+      setTimeout(function(){ input.focus(); }, 100);
+    } else {
+      input.style.display = 'none';
+    }
+
+    if (opts.type === 'alert') {
+      cancelBtn.style.display = 'none';
+      btns.classList.add('single');
+    } else {
+      cancelBtn.style.display = '';
+      btns.classList.remove('single');
+    }
+
+    okBtn.textContent = opts.okText || 'OK';
+    cancelBtn.textContent = opts.cancelText || 'キャンセル';
+    okBtn.classList.toggle('danger', !!opts.danger);
+
+    bg.classList.add('show');
+
+    function cleanup(){
+      bg.classList.remove('show');
+      okBtn.onclick = null;
+      cancelBtn.onclick = null;
+      input.onkeydown = null;
+    }
+
+    okBtn.onclick = function(){
+      var v = opts.type === 'prompt' ? input.value : true;
+      cleanup();
+      resolve(v);
+    };
+    cancelBtn.onclick = function(){
+      cleanup();
+      resolve(opts.type === 'prompt' ? null : false);
+    };
+    if (opts.type === 'prompt') {
+      input.onkeydown = function(e){
+        if (e.key === 'Enter') { okBtn.click(); }
+        if (e.key === 'Escape') { cancelBtn.click(); }
+      };
+    }
+  });
+}
+
+// ヘルパー：confirm/alert/prompt 風に使う
+function modalConfirm(message, title, opts) {
+  opts = opts || {};
+  return showModal({
+    type: 'confirm',
+    title: title || '確認',
+    message: message,
+    okText: opts.okText,
+    cancelText: opts.cancelText,
+    danger: opts.danger,
+  });
+}
+function modalPrompt(message, defaultValue, title) {
+  return showModal({ type: 'prompt', title: title || '入力', message: message, defaultValue: defaultValue });
+}
+
+// トースト
+function showToast(message, type, duration) {
+  var t = $('toast');
+  t.textContent = message;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(function(){
+    t.classList.remove('show');
+  }, duration || 2500);
+}
+
+/* =====================================================
+   時計
+   ===================================================== */
+function tickClock() {
+  var d = new Date();
+  $('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  var w = ['日','月','火','水','木','金','土'];
+  $('date').textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日（' + w[d.getDay()] + '）';
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* =====================================================
+   タブ切替
+   ===================================================== */
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
+    $('pane-' + tab).classList.add('active');
+    // POSタブ初回表示時にマスター取得
+    if (tab === 'pos') {
+      if (!posMaster) initPos();
+      else { posLoadOpenList(); posLoadTodayStats(); }
+    }
+  });
+});
+
+/* =====================================================
+   サブタブ切替（スタッフ画面内）
+   ===================================================== */
+document.querySelectorAll('.sub-tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    if (btn.disabled) return;
+    document.querySelectorAll('.sub-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var sub = btn.dataset.subtab;
+    document.querySelectorAll('.sub-tab-pane').forEach(function(p){ p.classList.remove('active'); });
+    $('subpane-' + sub).classList.add('active');
+    if (sub === 'sale') loadTodaySales();
+  });
+});
+
+/* 売上タブのロック制御 */
+function updateSaleLock(working) {
+  var saleTab = $('subtabSale');
+  if (working) {
+    saleTab.disabled = false;
+    saleTab.style.opacity = '';
+    $('saleLockedCard').style.display = 'none';
+    $('saleContent').style.display = '';
+  } else {
+    saleTab.disabled = false;  // タブ自体は切替可能、中身でロック表示
+    $('saleLockedCard').style.display = '';
+    $('saleContent').style.display = 'none';
+  }
+}
+
+/* =====================================================
+   スタッフ画面
+   ===================================================== */
+var sel = $('staffSelect');
+var btnIn = $('btnIn');
+var btnOut = $('btnOut');
+var btnRefresh = $('btnRefresh');
+var statusBox = $('statusBox');
+var msgEl = $('msg');
+var busy = false;
+
+function setMsg(type, text) {
+  msgEl.className = 'msg ' + type;
+  msgEl.textContent = text;
+}
+function clearMsg() {
+  msgEl.className = 'msg';
+  msgEl.textContent = '';
+}
+function setBusy(flag, label) {
+  busy = flag;
+  btnIn.disabled = flag || !sel.value;
+  btnOut.disabled = flag || !sel.value;
+  btnRefresh.disabled = flag;
+  if (flag) setMsg('info', '⏳ ' + (label || '処理中...'));
+}
+
+function loadStaff() {
+  // 新しい UI ではプルダウンは使わないが、互換性のため
+  // 「初回PIN設定」用のスタッフリストはここで取得する
+  google.script.run
+    .withSuccessHandler(function(list){
+      // 隠し要素の staffSelect に念のため設定
+      // 初回PIN設定用プルダウンも更新
+      var setupSel = $('pinSetupName');
+      if (setupSel) {
+        setupSel.innerHTML = '<option value="">-- スタッフ名を選択 --</option>';
+        list.forEach(function(n){
+          var op = document.createElement('option');
+          op.value = n;
+          op.textContent = n;
+          setupSel.appendChild(op);
+        });
+      }
+      clearMsg();
+    })
+    .withFailureHandler(function(err){
+      setMsg('err', '読み込みエラー: ' + err.message);
+    })
+    .getStaffNameList();
+}
+loadStaff();
+
+function refreshStatus() {
+  var name = sel.value;
+  if (!name) {
+    statusBox.className = 'status-box status-none';
+    statusBox.textContent = '名前を選んでください';
+    btnIn.disabled = true;
+    btnOut.disabled = true;
+    updateSaleLock(false);
+    renderSessionList([]);
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(function(res){
+      var sessions = res.sessions || [];
+      renderSessionList(sessions);
+
+      if (res.state === 'working') {
+        statusBox.className = 'status-box status-working';
+        var seqInfo = sessions.length > 1 ? '（本日' + sessions.length + '回目）' : '';
+        statusBox.textContent = '✅ 出勤中（' + res.startTime + '〜）' + seqInfo;
+        btnIn.disabled = true;
+        btnOut.disabled = false;
+        updateSaleLock(true);
+        loadTodaySales();
+      } else if (res.state === 'done') {
+        statusBox.className = 'status-box status-done';
+        statusBox.textContent = '🌙 ' + res.startTime + '〜' + res.endTime + ' 退勤済\n（また出勤する場合は「出勤」を押す）';
+        btnIn.disabled = false;
+        btnOut.disabled = true;
+        updateSaleLock(false);
+      } else if (res.state === 'error') {
+        statusBox.className = 'status-box status-none';
+        statusBox.textContent = 'エラー: ' + (res.message || '');
+        btnIn.disabled = true;
+        btnOut.disabled = true;
+        updateSaleLock(false);
+      } else {
+        statusBox.className = 'status-box status-none';
+        statusBox.textContent = '本日まだ打刻していません';
+        btnIn.disabled = false;
+        btnOut.disabled = true;
+        updateSaleLock(false);
+      }
+    })
+    .withFailureHandler(function(err){
+      statusBox.textContent = 'エラー: ' + err.message;
+      updateSaleLock(false);
+    })
+    .getTodayStatus(name);
+}
+
+function renderSessionList(sessions) {
+  var box = $('sessionList');
+  if (!sessions || sessions.length === 0) {
+    box.innerHTML = '';
+    return;
+  }
+  var html = '';
+  sessions.forEach(function(s, i){
+    var active = (s.startTime && !s.endTime) ? 'active' : '';
+    var line = s.endTime
+      ? (s.startTime + ' 〜 ' + s.endTime + (s.workHours ? '（' + s.workHours + 'h）' : ''))
+      : (s.startTime + ' 〜 出勤中');
+    html += '<div class="session-row ' + active + '"><span class="seq">' + (i+1) + '</span><span>' + line + '</span></div>';
+  });
+  box.innerHTML = html;
+}
+
+sel.addEventListener('change', function(){ clearMsg(); refreshStatus(); });
+
+btnIn.addEventListener('click', function(){
+  if (busy) return;
+  var name = sel.value;
+  if (!name) { setMsg('err', '名前を選んでください'); return; }
+  modalConfirm(name + ' さん\n「出勤」を打刻します。よろしいですか？', '出勤打刻').then(function(ok){
+    if (!ok) return;
+    setBusy(true, '出勤打刻中...');
+    google.script.run
+      .withSuccessHandler(function(res){
+        setBusy(false);
+        if (res.ok) {
+          // ✅ 成功 → 即トップに戻る
+          showToast(res.message, 'ok');
+          setTimeout(function(){ doLogout(); }, 800);
+        } else {
+          setMsg('err', res.message);
+        }
+      })
+      .withFailureHandler(function(err){
+        setBusy(false);
+        setMsg('err', 'エラー: ' + err.message);
+      })
+      .clockIn(name);
+  });
+});
+
+btnOut.addEventListener('click', function(){
+  if (busy) return;
+  var name = sel.value;
+  if (!name) { setMsg('err', '名前を選んでください'); return; }
+  modalConfirm(name + ' さん\n「退勤」を打刻します。よろしいですか？', '退勤打刻').then(function(ok){
+    if (!ok) return;
+    setBusy(true, '退勤打刻中...');
+    google.script.run
+      .withSuccessHandler(function(res){
+        setBusy(false);
+        if (res.ok) {
+          // ✅ 成功 → 即トップに戻る
+          showToast(res.message, 'ok');
+          setTimeout(function(){ doLogout('お疲れさまでした！'); }, 800);
+        } else {
+          setMsg('err', res.message);
+        }
+      })
+      .withFailureHandler(function(err){
+        setBusy(false);
+        setMsg('err', 'エラー: ' + err.message);
+      })
+      .clockOut(name);
+  });
+});
+
+btnRefresh.addEventListener('click', function(){
+  if (busy) return;
+  clearMsg();
+  refreshStatus();
+});
+
+/* =====================================================
+   売上入力（金額表対応 + 小数数量対応）
+   ===================================================== */
+var saleItems = [];
+var saleItemUnits = {};      // item -> [unit1, unit2, ...]
+var saleDefaultUnit = {};    // item -> defaultUnit
+var selectedItem = null;
+var selectedUnit = null;
+var qty = 1;
+var saleBusy = false;
+var priceInfoCache = {};     // 'item__unit' -> { amount, rate }
+var lastTapTime = 0;
+
+// 数量フォーマット：1なら "1"、1.5なら "1.5"
+function fmtQty(q) {
+  return (q % 1 === 0) ? String(q) : q.toFixed(1);
+}
+
+function loadSaleItems() {
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res || !res.ok) {
+        console.error('getSaleItems failed', res);
+        return;
+      }
+      saleItems = res.items || [];
+      saleItemUnits = res.itemUnits || {};
+      saleDefaultUnit = res.itemDefaultUnit || {};
+
+      var grid = $('itemGrid');
+      grid.innerHTML = '';
+      saleItems.forEach(function(it){
+        var b = document.createElement('button');
+        b.className = 'item-btn';
+        b.type = 'button';
+        b.textContent = it;
+        b.dataset.item = it;
+        b.addEventListener('click', function(){ selectItem(it); });
+        grid.appendChild(b);
+      });
+    })
+    .withFailureHandler(function(err){ console.error(err); })
+    .getSaleItems();
+}
+loadSaleItems();
+
+function selectItem(item) {
+  selectedItem = item;
+  document.querySelectorAll('.item-btn').forEach(function(b){
+    b.classList.toggle('selected', b.dataset.item === item);
+  });
+
+  // 単位ボタンを動的生成（その項目で使える単位だけ表示）
+  var units = saleItemUnits[item] || ['本'];
+  var unitRow = $('unitRow');
+  unitRow.innerHTML = '';
+  units.forEach(function(u){
+    var b = document.createElement('button');
+    b.className = 'unit-btn';
+    b.type = 'button';
+    b.textContent = u;
+    b.dataset.unit = u;
+    b.addEventListener('click', function(){ selectUnit(u); });
+    unitRow.appendChild(b);
+  });
+
+  // デフォルト単位を選択
+  var def = saleDefaultUnit[item] || units[0];
+  selectUnit(def);
+  $('btnSubmitSale').disabled = false;
+}
+
+function selectUnit(unit) {
+  selectedUnit = unit;
+  document.querySelectorAll('.unit-btn').forEach(function(b){
+    b.classList.toggle('selected', b.dataset.unit === unit);
+  });
+  fetchPriceAndPreview();
+}
+
+// 数量プリセットボタン
+document.querySelectorAll('.qty-preset-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    qty = parseFloat(b.dataset.qty);
+    syncQtyDisplay();
+    fetchPriceAndPreview();
+  });
+});
+
+$('qtyMinus').addEventListener('click', function(){
+  qty = Math.max(0.5, Math.round((qty - 0.5) * 10) / 10);
+  syncQtyDisplay();
+  fetchPriceAndPreview();
+});
+$('qtyPlus').addEventListener('click', function(){
+  qty = Math.min(99, Math.round((qty + 0.5) * 10) / 10);
+  syncQtyDisplay();
+  fetchPriceAndPreview();
+});
+
+function syncQtyDisplay() {
+  $('qtyDisplay').textContent = fmtQty(qty);
+  // プリセットボタンの選択状態も更新
+  document.querySelectorAll('.qty-preset-btn').forEach(function(b){
+    b.classList.toggle('selected', parseFloat(b.dataset.qty) === qty);
+  });
+}
+syncQtyDisplay();
+
+function fetchPriceAndPreview() {
+  if (!selectedItem || !selectedUnit) {
+    updateSalePreview(null);
+    return;
+  }
+  var key = selectedItem + '__' + selectedUnit;
+  if (priceInfoCache[key]) {
+    updateSalePreview(priceInfoCache[key]);
+    return;
+  }
+  // GASからプレビュー取得
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (res && res.ok) {
+        priceInfoCache[key] = { amount: res.amount, rate: res.rate };
+      }
+      updateSalePreview(priceInfoCache[key] || null);
+    })
+    .withFailureHandler(function(){
+      updateSalePreview(null);
+    })
+    .previewBackAmount(selectedItem, selectedUnit, 1);
+}
+
+function updateSalePreview(info) {
+  var prev = $('salePreview');
+  if (!selectedItem) {
+    prev.textContent = '項目を選んでください';
+    return;
+  }
+  if (!info || !info.amount) {
+    prev.innerHTML = selectedItem + ' × ' + fmtQty(qty) + ' ' + (selectedUnit || '') +
+      '<span class="amount">単価未設定</span>';
+    return;
+  }
+  var unitPrice = info.amount;
+  var rate = info.rate;
+  var backAmount = Math.round(unitPrice * qty * rate);
+  var ratePct = (rate * 100).toFixed(0);
+
+  prev.innerHTML =
+    '<div style="font-size:14px; margin-bottom:6px;">' + selectedItem + ' × ' + fmtQty(qty) + ' ' + (selectedUnit || '') + '</div>' +
+    '<div style="font-size:11px; color: #888; margin-bottom:4px;">単価 ¥' + unitPrice.toLocaleString() + ' × バック率 ' + ratePct + '%</div>' +
+    '<span class="amount">バック額 ¥' + backAmount.toLocaleString() + '</span>';
+}
+
+$('btnSubmitSale').addEventListener('click', function(){
+  if (saleBusy) return;
+  var name = sel.value;
+  if (!name) { showToast('スタッフ名を選んでください', 'err'); return; }
+  if (!selectedItem) { showToast('項目を選んでください', 'err'); return; }
+  if (!selectedUnit) { showToast('単位を選んでください', 'err'); return; }
+
+  // 二重送信防止：3秒以内の連打を無視
+  var now = Date.now();
+  if (now - lastTapTime < 3000) return;
+  lastTapTime = now;
+
+  modalConfirm(
+    selectedItem + ' × ' + fmtQty(qty) + selectedUnit + ' を登録します。\nよろしいですか？',
+    '売上登録'
+  ).then(function(ok){
+    if (!ok) return;
+
+    saleBusy = true;
+    $('btnSubmitSale').disabled = true;
+    $('saleMsg').className = 'msg info';
+    $('saleMsg').textContent = '⏳ 送信中...';
+
+    var memo = $('saleMemo').value.trim();
+    google.script.run
+      .withSuccessHandler(function(res){
+        saleBusy = false;
+        $('btnSubmitSale').disabled = false;
+        if (res.ok) {
+          // ✅ 成功 → 即トップに戻る
+          showToast(res.message, 'ok');
+          // フォームをリセット
+          qty = 1;
+          $('saleMemo').value = '';
+          setTimeout(function(){ doLogout(); }, 1000);
+        } else {
+          $('saleMsg').className = 'msg err';
+          $('saleMsg').textContent = res.message;
+        }
+      })
+      .withFailureHandler(function(err){
+        saleBusy = false;
+        $('btnSubmitSale').disabled = false;
+        $('saleMsg').className = 'msg err';
+        $('saleMsg').textContent = 'エラー: ' + err.message;
+      })
+      .submitSale(name, selectedItem, qty, selectedUnit, memo);
+  });
+});
+
+function loadTodaySales() {
+  var name = sel.value;
+  if (!name) {
+    $('todaySalesList').textContent = '名前を選んでください';
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(function(res){
+      var box = $('todaySalesList');
+      if (!res.ok || !res.rows || res.rows.length === 0) {
+        box.innerHTML = '<div style="text-align:center;color: #888;padding:10px;">まだ入力はありません</div>';
+        return;
+      }
+      var html = '';
+      var total = 0;
+      // 新しい順に
+      res.rows.slice().reverse().forEach(function(r){
+        total += Number(r.amount || 0);
+        var amt = r.amount > 0 ? '¥' + Number(r.amount).toLocaleString() : '-';
+        var memo = r.memo ? ' / ' + escapeHtmlSafe(r.memo) : '';
+        html += '<div class="sale-row">' +
+          '<span class="sale-time">' + (r.time || '') + '</span>' +
+          '<span class="sale-item">' + escapeHtmlSafe(r.item) + ' × ' + r.qty + escapeHtmlSafe(r.unit) + memo + '</span>' +
+          '<span class="sale-amount">' + amt + '</span>' +
+          '</div>';
+      });
+      html += '<div style="text-align:right;margin-top:8px;font-weight:700;color:#d6336c;">合計 ¥' + total.toLocaleString() + '</div>';
+      box.innerHTML = html;
+    })
+    .withFailureHandler(function(err){
+      $('todaySalesList').textContent = 'エラー: ' + err.message;
+    })
+    .getTodayMySales(name);
+}
+
+function escapeHtmlSafe(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+/* =====================================================
+   管理画面
+   ===================================================== */
+var adminToken = null;
+
+function addLog(type, text) {
+  var list = $('logList');
+  var row = document.createElement('div');
+  row.className = 'log-row log-' + type;
+  row.innerHTML = '<span class="log-time">' + nowHm() + '</span><span></span>';
+  row.querySelectorAll('span')[1].textContent = text;
+  list.insertBefore(row, list.firstChild);
+  // ログイン待機中の初期メッセージを消す
+  var initial = list.querySelector('.log-row .log-time');
+  // 最大50件
+  while (list.children.length > 50) list.removeChild(list.lastChild);
+}
+
+function showAdminResult(type, html) {
+  var box = $('adminResult');
+  box.innerHTML = '<div class="card"><h2>📋 結果</h2><div class="msg ' + type + '" style="display:block;">' + html + '</div></div>';
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showAdminTable(title, rows, headers) {
+  var box = $('adminResult');
+  if (!rows || rows.length === 0) {
+    box.innerHTML = '<div class="card"><h2>📋 ' + title + '</h2><div class="msg info" style="display:block;">該当データなし（0件）</div></div>';
+    return;
+  }
+  var keys = headers && headers.length ? headers : Object.keys(rows[0]);
+  var html = '<div class="card"><h2>📋 ' + title + ' (' + rows.length + '件)</h2><div style="overflow-x:auto;"><table class="data-table"><thead><tr>';
+  keys.forEach(function(k){ html += '<th>' + escapeHtml(String(k)) + '</th>'; });
+  html += '</tr></thead><tbody>';
+  rows.forEach(function(r){
+    html += '<tr>';
+    keys.forEach(function(k){ html += '<td>' + escapeHtml(String(r[k] == null ? '' : r[k])) + '</td>'; });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div></div>';
+  box.innerHTML = html;
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+/* ---- ログイン ---- */
+$('btnLogin').addEventListener('click', function(){
+  var pw = $('adminPw').value;
+  if (!pw) {
+    $('loginMsg').className = 'msg err';
+    $('loginMsg').textContent = 'パスワードを入力してください';
+    return;
+  }
+  showOverlay('認証中...');
+  google.script.run
+    .withSuccessHandler(function(res){
+      hideOverlay();
+      if (res.ok) {
+        adminToken = res.token;
+        $('loginCard').style.display = 'none';
+        $('adminContent').style.display = 'block';
+        $('adminPw').value = '';
+        addLog('ok', 'ログインしました');
+        // Phase1 新ダッシュボード初期化
+        initPhase1Dashboard();
+        loadCalendarInfo();
+      } else {
+        $('loginMsg').className = 'msg err';
+        $('loginMsg').textContent = res.message || 'ログイン失敗';
+      }
+    })
+    .withFailureHandler(function(err){
+      hideOverlay();
+      $('loginMsg').className = 'msg err';
+      $('loginMsg').textContent = 'エラー: ' + err.message;
+    })
+    .adminAuthenticate(pw);
+});
+
+$('adminPw').addEventListener('keypress', function(e){
+  if (e.key === 'Enter') $('btnLogin').click();
+});
+
+$('btnLogout').addEventListener('click', function(){
+  modalConfirm('ログアウトしますか？', 'ログアウト確認').then(function(ok){
+    if (!ok) return;
+    adminToken = null;
+    $('loginCard').style.display = '';
+    $('adminContent').style.display = 'none';
+    $('adminResult').innerHTML = '';
+  });
+});
+
+/* ---- 管理画面アクション ---- */
+function runAdminAction(act) {
+  if (!adminToken) {
+    showToast('未ログインです', 'err');
+    return;
+  }
+
+  // 確認モーダル → 確定後に処理開始
+  modalConfirm(getActConfirmText(act), getActLabel(act), {
+    danger: (act === 'sendAll' || act === 'clearSample' ||
+             (act === 'monthEnd' && $('stepSend') && $('stepSend').checked))
+  }).then(function(ok){
+    if (!ok) return;
+    executeAdminAction(act);
+  });
+}
+
+function executeAdminAction(act) {
+  var label = getActLabel(act);
+  showOverlay(label + '...');
+  addLog('info', label + ' 開始');
+
+  var handler = function(res){
+    hideOverlay();
+    if (res && res.ok) {
+      addLog('ok', label + ' 成功');
+      if (res.results) {
+        // 配列の結果（全データ同期・月末締めなど）
+        var html = '';
+        res.results.forEach(function(r){
+          var icon = r.ok ? '✅' : '❌';
+          html += '<div style="margin-bottom:10px;"><b>' + icon + ' ' + escapeHtml(r.label) + '</b><br>' + escapeHtml(r.message || '').replace(/\n/g, '<br>') + '</div>';
+        });
+        showAdminResult('info', html);
+      } else if (res.rows !== undefined) {
+        showAdminTable(label, res.rows, res.headers);
+      } else {
+        showAdminResult('ok', escapeHtml(res.message || '完了').replace(/\n/g, '<br>'));
+      }
+      refreshPhase1();
+      // サンプル/DB操作なら売上・給料データも更新
+      if (act === 'genSample' || act === 'clearSample') {
+        loadPhase1Sales();
+        loadPhase1Salary();
+      }
+    } else {
+      addLog('err', label + ' 失敗');
+      showAdminResult('err', escapeHtml((res && res.message) || 'エラー').replace(/\n/g, '<br>'));
+    }
+  };
+  var failure = function(err){
+    hideOverlay();
+    addLog('err', label + ' エラー: ' + err.message);
+    showAdminResult('err', 'エラー: ' + escapeHtml(err.message));
+  };
+
+  var runner = google.script.run.withSuccessHandler(handler).withFailureHandler(failure);
+
+  switch (act) {
+    case 'loadPinStatus':
+      hideOverlay();
+      loadPinStatus();
+      return;
+    case 'resetPin':
+      // データ属性からスタッフ名取得（クリックされたボタン経由）
+      hideOverlay();
+      return;
+    case 'genSample'     :
+      var m = parseInt($('sampleMonths').value, 10);
+      if (!m || m < 1 || m > 6) {
+        hideOverlay();
+        showToast('1〜6の数字を入力してください', 'err');
+        return;
+      }
+      return runner.adminGenerateSampleData(adminToken, m);
+    case 'clearSample'   : return runner.adminClearSampleData(adminToken);
+    case 'loadShiftMatrix':
+      hideOverlay();
+      loadAdminShiftMatrix();
+      return;
+    case 'sendShiftReminder': return runner.adminSendShiftReminders(adminToken);
+    case 'setShiftDeadline': {
+      var ymStr = $('adminShiftMonth').value;
+      var deadline = $('adminShiftDeadline').value;
+      if (!ymStr || !deadline) {
+        hideOverlay();
+        showToast('対象月と期限日を入力してください', 'err');
+        return;
+      }
+      var p = ymStr.split('-');
+      return runner.adminSetShiftDeadline(adminToken, Number(p[0]), Number(p[1]), deadline);
+    }
+    case 'saveShiftConfirm':
+      saveAdminShiftConfirm();
+      hideOverlay();
+      return;
+    case 'loadMissingPunches':
+      hideOverlay();
+      loadMissingPunches();
+      return;
+    default:
+      hideOverlay();
+      showToast('不明な操作: ' + act, 'err');
+  }
+}
+
+function getActLabel(act) {
+  return ({
+    genSample        : '🧪 サンプル生成',
+    clearSample      : '🧹 月別DBクリア',
+    loadShiftMatrix  : '📅 シフト一覧読込',
+    sendShiftReminder: '📧 リマインダー送信',
+    setShiftDeadline : '📅 提出期限設定',
+    saveShiftConfirm : '💾 出勤決定保存',
+    loadPinStatus    : '🔐 PIN状況読込',
+    resetPin         : '🔐 PINリセット',
+    loadMissingPunches: '⚠️ 打刻漏れ読込',
+  })[act] || act;
+}
+
+function getActConfirmText(act) {
+  switch (act) {
+    case 'genSample'     :
+      var n = parseInt($('sampleMonths').value, 10) || 0;
+      return '🧪 ' + n + 'ヶ月分のサンプルデータを生成します。\n（全スタッフ × ランダムなシフト・売上）\nDB_YYYYMM シートに「追加」されます。\n\nよろしいですか？';
+    case 'clearSample'   : return '⚠️ すべての月別DBシート（DB_YYYYMM）を削除します。\nこの操作は取り消せません。\n\n本当によろしいですか？';
+    default              : return getActLabel(act) + 'を実行します。よろしいですか？';
+  }
+}
+
+document.querySelectorAll('[data-act]').forEach(function(el){
+  el.addEventListener('click', function(){
+    runAdminAction(el.dataset.act);
+  });
+});
+
+
+/* =====================================================
+   Phase1 ダッシュボード（4機能：売上/出勤者/打刻漏れ/給料）
+   ===================================================== */
+var ph1AutoTimer = null;
+var ph1CurrentTab = 'sales';
+
+function initPhase1Dashboard() {
+  // 月セレクト初期化（売上・給料用）
+  initPh1MonthSelects();
+
+  // タブ切替リスナー
+  document.querySelectorAll('.ph1-tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      switchPh1Tab(t.dataset.ph1tab);
+    });
+  });
+
+  // 月セレクト変更
+  if ($('salesMonthSel')) {
+    $('salesMonthSel').addEventListener('change', loadPhase1Sales);
+  }
+  if ($('salaryMonthSel')) {
+    $('salaryMonthSel').addEventListener('change', loadPhase1Salary);
+  }
+
+  // 初回ロード（売上タブ）
+  loadPhase1Sales();
+  // バックグラウンドで他タブも先読み
+  loadPhase1Attendance();
+
+  // 1分ごとの自動更新（出勤者・売上のみ）
+  if (ph1AutoTimer) clearInterval(ph1AutoTimer);
+  ph1AutoTimer = setInterval(function(){
+    if (ph1CurrentTab === 'sales' || ph1CurrentTab === 'attendance') {
+      refreshPhase1();
+    }
+  }, 60 * 1000);
+}
+
+function initPh1MonthSelects() {
+  // 今月＋過去12ヶ月
+  var now = new Date();
+  var options = [];
+  for (var i = 0; i < 13; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var y = d.getFullYear();
+    var m = d.getMonth() + 1;
+    var label = y + '年' + m + '月' + (i === 0 ? '（今月）' : i === 1 ? '（先月）' : '');
+    options.push({ value: y + '-' + m, label: label });
+  }
+  ['salesMonthSel', 'salaryMonthSel'].forEach(function(id){
+    var sel = $(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    options.forEach(function(o){
+      var op = document.createElement('option');
+      op.value = o.value;
+      op.textContent = o.label;
+      sel.appendChild(op);
+    });
+  });
+}
+
+function getSelectedYearMonth(selId) {
+  var sel = $(selId);
+  if (!sel) {
+    var now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1 };
+  }
+  var parts = sel.value.split('-');
+  return { year: Number(parts[0]), month: Number(parts[1]) };
+}
+
+function switchPh1Tab(tabName) {
+  ph1CurrentTab = tabName;
+  document.querySelectorAll('.ph1-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.ph1tab === tabName);
+  });
+  document.querySelectorAll('.ph1-pane').forEach(function(p){
+    p.classList.toggle('active', p.id === 'ph1-pane-' + tabName);
+  });
+  // タブ初回表示時に読込
+  if (tabName === 'attendance') loadPhase1Attendance();
+  else if (tabName === 'sales') loadPhase1Sales();
+  else if (tabName === 'miss') loadMissingPunches();
+  else if (tabName === 'salary') loadPhase1Salary();
+}
+
+function refreshPhase1() {
+  // 現在タブを再ロード
+  if (ph1CurrentTab === 'sales') loadPhase1Sales();
+  else if (ph1CurrentTab === 'attendance') loadPhase1Attendance();
+  else if (ph1CurrentTab === 'miss') loadMissingPunches();
+  else if (ph1CurrentTab === 'salary') loadPhase1Salary();
+}
+
+/* ---- 出勤者一覧 ---- */
+function loadPhase1Attendance() {
+  if (!adminToken) return;
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res.ok) {
+        $('attendanceListArea').innerHTML = '<div class="empty-msg">エラー: ' + escapeHtml(res.message || '') + '</div>';
+        return;
+      }
+      renderAttendanceList(res);
+      $('attUpdated').textContent = nowHms();
+    })
+    .withFailureHandler(function(err){
+      $('attendanceListArea').innerHTML = '<div class="empty-msg">取得失敗: ' + escapeHtml(err.message) + '</div>';
+    })
+    .adminPhase1_GetAttendanceList(adminToken);
+}
+
+function renderAttendanceList(data) {
+  var html = '';
+  var sections = [
+    { key: 'working', cls: 'working', icon: '✅', label: '出勤中' },
+    { key: 'done',    cls: 'done',    icon: '🌙', label: '退勤済' },
+    { key: 'notyet',  cls: 'notyet',  icon: '⚠️', label: '未出勤（シフトあり）' },
+  ];
+  sections.forEach(function(sec){
+    var list = data[sec.key] || [];
+    if (list.length === 0) return;
+    html += '<div class="ph1-staff-section">';
+    html += '<div class="ph1-staff-section-header ' + sec.cls + '">' + sec.icon + ' ' + sec.label + '<span>' + list.length + '名</span></div>';
+    list.forEach(function(s){
+      html += '<div class="ph1-staff-row ' + sec.cls + '">';
+      if (sec.key === 'notyet') {
+        html += '<div><div class="name">' + escapeHtml(s.name) + '</div>' +
+                '<div class="time">予定 ' + escapeHtml(s.scheduledFrom || '') + '〜' + escapeHtml(s.scheduledTo || '') + '</div></div>' +
+                '<div class="meta"><div style="color:#c62828; font-weight:700;">未打刻</div></div>';
+      } else {
+        var timeStr = sec.key === 'done' ?
+          (escapeHtml(s.startTime || '') + '〜' + escapeHtml(s.endTime || '')) :
+          ('🕐 ' + escapeHtml(s.startTime || '') + '〜');
+        html += '<div><div class="name">' + escapeHtml(s.name) + '</div>' +
+                '<div class="time">' + timeStr + '</div></div>' +
+                '<div class="meta">' +
+                  '<div><b>¥' + numberFormat(s.backAmount || 0) + '</b></div>' +
+                  '<div class="work-time">' + escapeHtml(s.workHm || '') + '</div>' +
+                '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  if (!html) html = '<div class="empty-msg">本日の出勤情報はまだありません</div>';
+  $('attendanceListArea').innerHTML = html;
+}
+
+/* ---- 売上ダッシュボード ---- */
+function loadPhase1Sales() {
+  if (!adminToken) return;
+  var ym = getSelectedYearMonth('salesMonthSel');
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res.ok) {
+        addLog('err', '売上取得失敗: ' + (res.message || ''));
+        return;
+      }
+      renderSalesDashboard(res);
+      $('salesUpdated').textContent = nowHms();
+    })
+    .withFailureHandler(function(err){
+      addLog('err', '売上取得エラー: ' + err.message);
+    })
+    .adminPhase1_GetSalesDashboard(adminToken, ym.year, ym.month);
+}
+
+function renderSalesDashboard(data) {
+  // 本日
+  $('todaySalesAmt').textContent = '¥ ' + numberFormat(data.today.amount || 0);
+  $('todaySalesCount').textContent = (data.today.count || 0) + '件';
+  $('todayStaffCount').textContent = (data.today.staffCount || 0) + '名';
+
+  // 月次
+  $('monthSalesLabel').textContent = data.year + '年 ' + data.month + '月 累計';
+  $('monthSalesAmt').textContent = '¥ ' + numberFormat(data.monthly.total || 0);
+  $('monthSalesPeriod').textContent = data.monthly.daysWithSales + '日分';
+  $('monthSalesAvg').textContent = '¥' + numberFormat(data.monthly.avgPerDay || 0);
+  $('monthSalesCount').textContent = (data.monthly.count || 0) + '件';
+
+  // 日別グラフ
+  renderDailyChart(data.dailySeries || [], data.today.date);
+}
+
+function renderDailyChart(series, todayDateStr) {
+  var max = 0;
+  series.forEach(function(s){ if (s.amount > max) max = s.amount; });
+  if (max === 0) max = 1;
+  var todayDay = todayDateStr ? Number(todayDateStr.split('-')[2]) : -1;
+
+  var html = '';
+  series.forEach(function(s){
+    var h = (s.amount / max * 100).toFixed(1);
+    var cls = (s.day === todayDay) ? ' today' : '';
+    var tip = (s.day) + '日: ¥' + numberFormat(s.amount);
+    html += '<div class="chart-bar' + cls + '" style="height:' + h + '%;" title="' + tip + '"></div>';
+  });
+  $('dailyChartBars').innerHTML = html;
+
+  // ラベル（1日、10日、20日、末日）
+  var lastDay = series.length;
+  var labels = '<span>1日</span><span>10日</span><span>20日</span><span>' + lastDay + '日</span>';
+  $('dailyChartLabels').innerHTML = labels;
+}
+
+/* ---- 打刻漏れ一覧 ---- */
+function loadMissingPunches() {
+  if (!adminToken) return;
+  $('missingPunchArea').innerHTML = '<div class="empty-msg">読み込み中...</div>';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res.ok) {
+        $('missingPunchArea').innerHTML = '<div class="empty-msg">エラー: ' + escapeHtml(res.message || '') + '</div>';
+        return;
+      }
+      renderMissingPunches(res);
+    })
+    .withFailureHandler(function(err){
+      $('missingPunchArea').innerHTML = '<div class="empty-msg">取得失敗: ' + escapeHtml(err.message) + '</div>';
+    })
+    .adminPhase1_GetMissingPunches(adminToken);
+}
+
+function renderMissingPunches(data) {
+  var html = '';
+  if (!data.missing || data.missing.length === 0) {
+    html = '<div class="empty-msg">✅ 打刻漏れはありません</div>';
+  } else {
+    data.missing.forEach(function(m){
+      var dateLabel = formatJaDate(m.date);
+      var typeCls = m.type === 'out' ? 'type out' : 'type';
+      html += '<div class="miss-row">' +
+                '<div class="date">' + escapeHtml(dateLabel) + '</div>' +
+                '<div class="name">' + escapeHtml(m.name) + '</div>' +
+                '<div class="' + typeCls + '">' + escapeHtml(m.label || '') + '</div>' +
+              '</div>';
+    });
+    html += '<div class="total-bar">' +
+              '<div class="label">月間打刻漏れ合計</div>' +
+              '<div class="amount">' + data.stats.total + ' 件</div>' +
+              '<div class="count">出勤忘れ ' + data.stats.in + '件 / 退勤忘れ ' + data.stats.out + '件</div>' +
+            '</div>';
+  }
+  $('missingPunchArea').innerHTML = html;
+}
+
+/* ---- 給料一覧 ---- */
+function loadPhase1Salary() {
+  if (!adminToken) return;
+  var ym = getSelectedYearMonth('salaryMonthSel');
+  $('salaryListArea').innerHTML = '<div class="empty-msg">読み込み中...</div>';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res.ok) {
+        $('salaryListArea').innerHTML = '<div class="empty-msg">エラー: ' + escapeHtml(res.message || '') + '</div>';
+        return;
+      }
+      renderSalaryList(res);
+    })
+    .withFailureHandler(function(err){
+      $('salaryListArea').innerHTML = '<div class="empty-msg">取得失敗: ' + escapeHtml(err.message) + '</div>';
+    })
+    .adminPhase1_GetSalaryList(adminToken, ym.year, ym.month);
+}
+
+function renderSalaryList(data) {
+  var html = '';
+  if (!data.list || data.list.length === 0) {
+    html = '<div class="empty-msg">対象月の給料データはありません</div>';
+    $('salaryListArea').innerHTML = html;
+    return;
+  }
+  data.list.forEach(function(s){
+    var detailHtml = '';
+    var items = s.items || {};
+    Object.keys(items).forEach(function(item){
+      detailHtml += '<div class="detail-line"><span>' + escapeHtml(item) + '</span><span>¥ ' + numberFormat(items[item]) + '</span></div>';
+    });
+    detailHtml += '<div class="detail-line total"><span>合計</span><span>¥ ' + numberFormat(s.total) + '</span></div>';
+    html += '<div class="salary-row" data-name="' + escapeHtml(s.name) + '">' +
+              '<div class="salary-summary">' +
+                '<div class="name">' + escapeHtml(s.name) + '</div>' +
+                '<div class="amount">¥ ' + numberFormat(s.total) + '</div>' +
+                '<div class="toggle">▶</div>' +
+              '</div>' +
+              '<div class="salary-detail">' + detailHtml + '</div>' +
+            '</div>';
+  });
+  html += '<div class="total-bar">' +
+            '<div class="label">月間給料合計（' + data.staffCount + '名）</div>' +
+            '<div class="amount">¥ ' + numberFormat(data.grandTotal || 0) + '</div>' +
+            '<div class="count">' + data.year + '年' + data.month + '月分</div>' +
+          '</div>';
+  $('salaryListArea').innerHTML = html;
+  // 開閉リスナー
+  document.querySelectorAll('#salaryListArea .salary-summary').forEach(function(s){
+    s.addEventListener('click', function(){
+      s.parentElement.classList.toggle('open');
+    });
+  });
+}
+
+/* ---- ユーティリティ ---- */
+function numberFormat(n) {
+  return Number(n || 0).toLocaleString('ja-JP');
+}
+function nowHms() {
+  var d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' +
+         String(d.getMinutes()).padStart(2,'0') + ':' +
+         String(d.getSeconds()).padStart(2,'0');
+}
+function formatJaDate(ymd) {
+  // 'YYYY-MM-DD' → 'M/D (曜)'
+  if (!ymd) return '';
+  var p = ymd.split('-');
+  if (p.length < 3) return ymd;
+  var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  var dows = ['日','月','火','水','木','金','土'];
+  return (d.getMonth() + 1) + '/' + d.getDate() + ' (' + dows[d.getDay()] + ')';
+}
+
+
+/* =====================================================
+   Phase4 POSレジ
+   ===================================================== */
+var posMaster = null;        // マスターデータ
+var posCurrentCheck = null;  // 編集中の伝票
+var posNewCheckDraft = {
+  tableId: '',
+  tableName: '',
+  peopleCount: 2,
+  nominees: [],
+};
+var posPendingItem = null;   // バック先選択待ちのアイテム
+
+function initPos() {
+  // マスター取得
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res.ok) return;
+      posMaster = res;
+      posLoadOpenList();
+      posLoadTodayStats();
+    })
+    .withFailureHandler(function(err){
+      showToast('POSマスター取得エラー: ' + err.message, 'err');
+    })
+    .posGetMasterData();
+}
+
+function posShowList() {
+  $('pos-view-list').style.display = '';
+  $('pos-view-new').style.display = 'none';
+  $('pos-view-detail').style.display = 'none';
+  posCurrentCheck = null;
+  posLoadOpenList();
+  posLoadTodayStats();
+  window.scrollTo(0, 0);
+}
+
+function posShowNewCheck() {
+  if (!posMaster) { showToast('マスター未取得です', 'err'); return; }
+  $('pos-view-list').style.display = 'none';
+  $('pos-view-new').style.display = '';
+  $('pos-view-detail').style.display = 'none';
+  posNewCheckDraft = { tableId: '', tableName: '', peopleCount: 2, nominees: [] };
+  posRenderNewForm();
+  window.scrollTo(0, 0);
+}
+
+function posRenderNewForm() {
+  // テーブル一覧
+  posLoadOpenChecksThen(function(openChecks){
+    var occupied = {};
+    (openChecks || []).forEach(function(c){ occupied[c.tableId] = true; });
+    var html = '';
+    posMaster.tables.forEach(function(t){
+      var cls = 'pos-table-btn';
+      if (occupied[t.id]) cls += ' occupied';
+      else if (t.id === posNewCheckDraft.tableId) cls += ' selected';
+      var attr = occupied[t.id] ? 'disabled' :
+        ('onclick="posSelectTable(\'' + t.id + '\', \'' + escapeHtml(t.name) + '\')"');
+      html += '<button class="' + cls + '" ' + attr + '>' +
+                escapeHtml(t.name) +
+                (occupied[t.id] ? '<small>使用中</small>' : '') +
+              '</button>';
+    });
+    $('posTableGrid').innerHTML = html;
+  });
+
+  // スタッフチップ
+  var staffHtml = '';
+  (posMaster.staffList || []).forEach(function(name){
+    var sel = posNewCheckDraft.nominees.indexOf(name) >= 0;
+    staffHtml += '<div class="pos-staff-chip ' + (sel ? 'selected' : '') + '" onclick="posToggleNominee(\'' + escapeHtml(name) + '\')">' +
+      '<span class="check">' + (sel ? '✓' : '') + '</span>' + escapeHtml(name) + '</div>';
+  });
+  $('posStaffGrid').innerHTML = staffHtml;
+
+  posUpdateCharge();
+}
+
+function posSelectTable(id, name) {
+  posNewCheckDraft.tableId = id;
+  posNewCheckDraft.tableName = name;
+  posRenderNewForm();
+}
+
+function posChangeCount(delta) {
+  posNewCheckDraft.peopleCount = Math.max(1, Math.min(20, posNewCheckDraft.peopleCount + delta));
+  $('posCountNum').textContent = posNewCheckDraft.peopleCount;
+  posUpdateCharge();
+}
+
+function posToggleNominee(name) {
+  var idx = posNewCheckDraft.nominees.indexOf(name);
+  if (idx >= 0) posNewCheckDraft.nominees.splice(idx, 1);
+  else posNewCheckDraft.nominees.push(name);
+  posRenderNewForm();
+}
+
+function posUpdateCharge() {
+  var n = posNewCheckDraft.peopleCount;
+  var unit = (posMaster && posMaster.chargePerPerson) ? posMaster.chargePerPerson : 1500;
+  $('posChargeNum').textContent = n;
+  $('posChargeAmt').textContent = (n * unit).toLocaleString();
+}
+
+function posCreateNewCheck() {
+  if (!posNewCheckDraft.tableId) {
+    showToast('テーブルを選択してください', 'err');
+    return;
+  }
+  showOverlay('伝票作成中...');
+  google.script.run
+    .withSuccessHandler(function(res){
+      hideOverlay();
+      if (!res.ok) { showToast(res.message || 'エラー', 'err'); return; }
+      posCurrentCheck = res.check;
+      posShowDetail();
+    })
+    .withFailureHandler(function(err){
+      hideOverlay();
+      showToast('エラー: ' + err.message, 'err');
+    })
+    .posCreateCheck(posNewCheckDraft);
+}
+
+function posLoadOpenList() {
+  posLoadOpenChecksThen(function(checks){
+    var html = '';
+    if (!checks || checks.length === 0) {
+      html = '<div class="empty-msg">営業中の伝票はありません</div>';
+      $('posOpenCount').textContent = '';
+    } else {
+      $('posOpenCount').textContent = '（' + checks.length + '件）';
+      checks.forEach(function(c){
+        var subtotal = posCalcSubtotal(c);
+        var nominees = (c.nominees || []).join('・');
+        html += '<div class="pos-check-card" onclick="posOpenCheck(\'' + c.id + '\')">' +
+                  '<div class="pos-check-head">' +
+                    '<div class="pos-check-table">📍 ' + escapeHtml(c.tableName) + '</div>' +
+                    '<div class="pos-check-meta">' + c.peopleCount + '名 / ' + escapeHtml(c.openedAt || '') + '〜</div>' +
+                  '</div>' +
+                  (nominees ? '<div class="pos-check-staff">👤 ' + escapeHtml(nominees) + ' 指名</div>' : '') +
+                  '<div class="pos-check-amount">¥' + subtotal.toLocaleString() + '</div>' +
+                '</div>';
+      });
+    }
+    $('posOpenList').innerHTML = html;
+  });
+}
+
+function posLoadOpenChecksThen(cb) {
+  google.script.run
+    .withSuccessHandler(function(res){
+      cb(res.ok ? res.checks : []);
+    })
+    .withFailureHandler(function(){ cb([]); })
+    .posGetOpenChecks();
+}
+
+function posLoadTodayStats() {
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res.ok) { $('posTodayStats').textContent = '取得失敗'; return; }
+      $('posTodayStats').innerHTML =
+        '合計: <b style="color:#d6336c; font-size:16px;">¥' + (res.total||0).toLocaleString() + '</b>' +
+        ' / ' + res.count + '件' +
+        ' / 平均 ¥' + (res.avg||0).toLocaleString();
+    })
+    .withFailureHandler(function(){ $('posTodayStats').textContent = 'エラー'; })
+    .posGetTodayStats();
+}
+
+function posCalcSubtotal(c) {
+  var unit = (posMaster && posMaster.chargePerPerson) ? posMaster.chargePerPerson : 1500;
+  var total = (c.peopleCount || 0) * unit;
+  (c.orders || []).forEach(function(o){
+    total += Number(o.price || 0) * Number(o.qty || 1);
+  });
+  return total;
+}
+
+function posOpenCheck(id) {
+  posLoadOpenChecksThen(function(checks){
+    var c = (checks || []).find(function(x){ return x.id === id; });
+    if (!c) { showToast('伝票が見つかりません', 'err'); return; }
+    posCurrentCheck = c;
+    posShowDetail();
+  });
+}
+
+function posShowDetail() {
+  $('pos-view-list').style.display = 'none';
+  $('pos-view-new').style.display = 'none';
+  $('pos-view-detail').style.display = '';
+  posRenderDetail();
+  window.scrollTo(0, 0);
+}
+
+function posRenderDetail() {
+  var c = posCurrentCheck;
+  if (!c) return;
+  $('posDetailTitle').innerHTML = '📋 ' + escapeHtml(c.tableName) + ' / ' + c.peopleCount + '名 ' +
+    '<button class="link-back" onclick="posShowList()">← 戻る</button>';
+  var nom = (c.nominees || []).join('・');
+  $('posDetailMeta').innerHTML = '👤 ' + escapeHtml(nom || '指名なし') + ' （来店 ' + escapeHtml(c.openedAt || '') + '）';
+
+  // オーダー一覧
+  var html = '';
+  // チャージ（自動）
+  var unit = (posMaster && posMaster.chargePerPerson) ? posMaster.chargePerPerson : 1500;
+  html += '<div class="pos-order-row">' +
+            '<div class="name">⏰ チャージ料金</div>' +
+            '<div class="qty">×' + c.peopleCount + '</div>' +
+            '<div class="price">¥' + (c.peopleCount * unit).toLocaleString() + '</div>' +
+          '</div>';
+  // 各オーダー
+  (c.orders || []).forEach(function(o, i){
+    var rowCls = 'pos-order-row' + (Number(o.backRate || 0) > 0 ? ' champagne' : '');
+    var price = Number(o.price || 0) * Number(o.qty || 1);
+    html += '<div class="' + rowCls + '">' +
+              '<div class="name">' + escapeHtml(o.name) + '</div>' +
+              '<div class="qty">×' + (o.qty || 1) + (o.unit ? o.unit : '') + '</div>' +
+              '<div class="price">¥' + price.toLocaleString() + '</div>';
+    if (o.backTo) {
+      html += '<div class="back-to">バック先: <b>' + escapeHtml(o.backTo) + '</b></div>';
+    }
+    html += '<button class="del-btn" onclick="posRemoveOrder(' + i + ')">削除</button>';
+    html += '</div>';
+  });
+  $('posOrderList').innerHTML = html;
+
+  // 合計
+  $('posTotalAmt').textContent = '¥ ' + posCalcSubtotal(c).toLocaleString();
+}
+
+function posRemoveOrder(idx) {
+  if (!posCurrentCheck) return;
+  if (!confirm('このオーダーを削除しますか？')) return;
+  posCurrentCheck.orders.splice(idx, 1);
+  posRenderDetail();
+  posSyncCurrent();
+}
+
+function posSyncCurrent() {
+  if (!posCurrentCheck) return;
+  google.script.run
+    .withSuccessHandler(function(){})
+    .withFailureHandler(function(){})
+    .posUpdateCheck(posCurrentCheck.id, {
+      orders: posCurrentCheck.orders,
+      nominees: posCurrentCheck.nominees,
+    });
+}
+
+function posSaveCurrent() {
+  if (!posCurrentCheck) return;
+  showOverlay('保存中...');
+  google.script.run
+    .withSuccessHandler(function(res){
+      hideOverlay();
+      if (res.ok) {
+        showToast('💾 保存しました', 'ok');
+      } else {
+        showToast(res.message || '保存失敗', 'err');
+      }
+    })
+    .withFailureHandler(function(err){
+      hideOverlay();
+      showToast('エラー: ' + err.message, 'err');
+    })
+    .posUpdateCheck(posCurrentCheck.id, {
+      orders: posCurrentCheck.orders,
+      nominees: posCurrentCheck.nominees,
+    });
+}
+
+function posCancelCurrent() {
+  if (!posCurrentCheck) return;
+  modalConfirm('この伝票を取り消しますか？\n（オーダー内容は削除されます）', '伝票取消', { danger: true }).then(function(ok){
+    if (!ok) return;
+    showOverlay('取消中...');
+    google.script.run
+      .withSuccessHandler(function(res){
+        hideOverlay();
+        if (res.ok) {
+          showToast('伝票を取り消しました', 'ok');
+          posShowList();
+        } else {
+          showToast(res.message || 'エラー', 'err');
+        }
+      })
+      .withFailureHandler(function(err){
+        hideOverlay();
+        showToast('エラー: ' + err.message, 'err');
+      })
+      .posCancelCheck(posCurrentCheck.id);
+  });
+}
+
+function posCheckoutCurrent() {
+  if (!posCurrentCheck) return;
+  var total = posCalcSubtotal(posCurrentCheck);
+  modalConfirm('🧾 会計しますか？\n合計: ¥' + total.toLocaleString() + '\n\n会計するとデータが保存されます', '会計確認').then(function(ok){
+    if (!ok) return;
+    showOverlay('会計処理中...');
+    google.script.run
+      .withSuccessHandler(function(res){
+        hideOverlay();
+        if (res.ok) {
+          showToast('🧾 ' + res.message, 'ok');
+          posShowList();
+        } else {
+          showToast(res.message || '会計エラー', 'err');
+        }
+      })
+      .withFailureHandler(function(err){
+        hideOverlay();
+        showToast('エラー: ' + err.message, 'err');
+      })
+      .posCheckout(posCurrentCheck.id, {
+        orders: posCurrentCheck.orders,
+        nominees: posCurrentCheck.nominees,
+      });
+  });
+}
+
+/* ---- メニューモーダル ---- */
+var posCurrentMenuCat = 'champagne';
+
+function posShowMenuModal() {
+  posCurrentMenuCat = 'champagne';
+  posRenderMenuList();
+  document.querySelectorAll('.pos-menu-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.menutab === 'champagne');
+  });
+  $('posMenuModal').classList.add('show');
+}
+function posCloseMenuModal() {
+  $('posMenuModal').classList.remove('show');
+}
+function posRenderMenuList() {
+  if (!posMaster || !posMaster.menu) return;
+  var items = posMaster.menu[posCurrentMenuCat] || [];
+  var html = '';
+  items.forEach(function(m){
+    var hasBack = Number(m.backRate || 0) > 0;
+    html += '<div class="pos-menu-item" onclick="posSelectMenuItem(\'' + m.id + '\')">' +
+              '<div>' +
+                '<div class="name">' + escapeHtml(m.name) + '</div>' +
+                (hasBack ? '<div class="back-tag">バック' + Math.round(m.backRate*100) + '%</div>' : '') +
+              '</div>' +
+              '<div class="price">¥' + m.price.toLocaleString() + '</div>' +
+            '</div>';
+  });
+  $('posMenuList').innerHTML = html;
+}
+
+document.querySelectorAll('.pos-menu-tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    document.querySelectorAll('.pos-menu-tab').forEach(function(x){ x.classList.remove('active'); });
+    t.classList.add('active');
+    posCurrentMenuCat = t.dataset.menutab;
+    posRenderMenuList();
+  });
+});
+
+function posSelectMenuItem(id) {
+  var item = null;
+  Object.keys(posMaster.menu).forEach(function(cat){
+    posMaster.menu[cat].forEach(function(m){ if (m.id === id) item = Object.assign({}, m); });
+  });
+  if (!item) return;
+  // バック対象かチェック
+  if (Number(item.backRate || 0) > 0) {
+    posPendingItem = item;
+    posShowBackModal(item);
+  } else {
+    posAddOrder(item, null);
+    posCloseMenuModal();
+  }
+}
+
+function posShowBackModal(item) {
+  $('posBackItemName').textContent = item.name;
+  $('posBackItemPrice').textContent = '¥' + item.price.toLocaleString();
+  // スタッフリスト（指名+全員）
+  var html = '';
+  var selSet = {};
+  (posCurrentCheck.nominees || []).forEach(function(n){ selSet[n] = true; });
+  // 指名スタッフ先頭
+  (posCurrentCheck.nominees || []).forEach(function(name){
+    html += '<div class="pos-staff-chip" onclick="posSelectBackTo(this, \'' + escapeHtml(name) + '\')">' +
+            '<span class="check"></span>' + escapeHtml(name) + ' ⭐</div>';
+  });
+  // 残りのスタッフ
+  (posMaster.staffList || []).forEach(function(name){
+    if (selSet[name]) return;
+    html += '<div class="pos-staff-chip" onclick="posSelectBackTo(this, \'' + escapeHtml(name) + '\')">' +
+            '<span class="check"></span>' + escapeHtml(name) + '</div>';
+  });
+  $('posBackStaffGrid').innerHTML = html;
+  posCloseMenuModal();
+  $('posBackModal').classList.add('show');
+}
+
+function posCloseBackModal() {
+  $('posBackModal').classList.remove('show');
+  posPendingItem = null;
+}
+
+var posSelectedBackTo = null;
+function posSelectBackTo(chip, name) {
+  document.querySelectorAll('#posBackStaffGrid .pos-staff-chip').forEach(function(c){
+    c.classList.remove('selected');
+    c.querySelector('.check').textContent = '';
+  });
+  chip.classList.add('selected');
+  chip.querySelector('.check').textContent = '✓';
+  posSelectedBackTo = name;
+}
+
+function posConfirmBack() {
+  if (!posPendingItem) return;
+  if (!posSelectedBackTo) { showToast('バック先を選択してください', 'err'); return; }
+  posAddOrder(posPendingItem, posSelectedBackTo);
+  posSelectedBackTo = null;
+  posPendingItem = null;
+  posCloseBackModal();
+}
+
+function posAddOrder(item, backTo) {
+  if (!posCurrentCheck) return;
+  if (!posCurrentCheck.orders) posCurrentCheck.orders = [];
+  posCurrentCheck.orders.push({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    qty: 1,
+    backRate: item.backRate || 0,
+    backTo: backTo || null,
+    unit: item.unit || '',
+  });
+  posRenderDetail();
+  posSyncCurrent();
+}
+
+
+/* =====================================================
+   シフト管理（管理画面）
+   ===================================================== */
+var adminShiftData = null;  // 取得したマトリクスデータ
+// セルの選択肢ローテーション: 空→○→△→×→⏰→確定→空
+var ADMIN_SHIFT_STATES = ['', '○', '△', '×', '⏰', '確定'];
+
+function initAdminShiftMonthSelect() {
+  var sel = $('adminShiftMonth');
+  if (!sel) return;
+  var now = new Date();
+  var html = '';
+  for (var i = 0; i <= 3; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    var y = d.getFullYear();
+    var m = d.getMonth() + 1;
+    html += '<option value="' + y + '-' + m + '">' + y + '年' + m + '月</option>';
+  }
+  sel.innerHTML = html;
+  if (sel.options.length >= 2) sel.selectedIndex = 1;
+}
+
+function loadAdminShiftMatrix() {
+  var ymStr = $('adminShiftMonth').value;
+  if (!ymStr) { showToast('対象月を選択してください', 'err'); return; }
+  var p = ymStr.split('-');
+  var year = Number(p[0]);
+  var month = Number(p[1]);
+  showOverlay('シフト一覧を読み込み中...');
+  google.script.run
+    .withSuccessHandler(function(res){
+      hideOverlay();
+      if (!res.ok) { showToast(res.message, 'err'); return; }
+      adminShiftData = {
+        year: year, month: month,
+        staff: res.staff || [],
+        dates: res.dates || [],
+        requests: res.requests || {},
+        confirms: res.confirms || {},
+        edits: {},  // 編集中の変更を蓄積
+      };
+      // 既存の確定状態を edits に反映（初期表示用）
+      Object.keys(adminShiftData.confirms).forEach(function(key){
+        var c = adminShiftData.confirms[key];
+        adminShiftData.edits[key] = {
+          state: c.status === '休み' ? '休み' : '確定',
+          timeFrom: c.timeFrom || '20:00',
+          timeTo: c.timeTo || '02:00',
+        };
+      });
+      $('shiftMatrixArea').style.display = '';
+      renderShiftMatrix();
+    })
+    .withFailureHandler(function(err){
+      hideOverlay();
+      showToast('エラー: ' + err.message, 'err');
+    })
+    .adminGetShiftMatrix(adminToken, year, month);
+}
+
+function renderShiftMatrix() {
+  if (!adminShiftData) return;
+  var data = adminShiftData;
+  var html = '<thead><tr><th>スタッフ</th>';
+  data.dates.forEach(function(dateStr){
+    var d = new Date(dateStr);
+    var dow = d.getDay();
+    var cls = '';
+    if (dow === 0) cls = 'sun';
+    else if (dow === 6) cls = 'sat';
+    var dowLabel = ['日','月','火','水','木','金','土'][dow];
+    html += '<th class="' + cls + '">' + (d.getMonth()+1) + '/' + d.getDate() + '<br>' + dowLabel + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  data.staff.forEach(function(name){
+    html += '<tr><th>' + escapeHtml(name) + '</th>';
+    data.dates.forEach(function(dateStr){
+      var key = name + '__' + dateStr;
+      var req = data.requests[key];
+      var edit = data.edits[key];
+      var classes = ['shift-cell'];
+      var label = '';
+      // 確定状態を優先表示
+      if (edit && edit.state) {
+        classes.push('confirmed');
+        if (edit.state === '休み') label = '休';
+        else label = edit.timeFrom + '〜' + edit.timeTo;
+      } else if (req) {
+        if (req.option === '○') { classes.push('req-ok'); label = '○'; }
+        else if (req.option === '△') { classes.push('req-maybe'); label = '△'; }
+        else if (req.option === '×') { classes.push('req-ng'); label = '×'; }
+        else if (req.option === '⏰') {
+          classes.push('req-time');
+          label = req.timeFrom + '-' + req.timeTo;
+        }
+      } else {
+        label = '·';
+      }
+      html += '<td class="' + classes.join(' ') + '" data-name="' + escapeHtml(name) + '" data-date="' + dateStr + '">' + label + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  $('shiftMatrixTable').innerHTML = html;
+
+  // クリックイベント
+  document.querySelectorAll('#shiftMatrixTable .shift-cell').forEach(function(td){
+    td.addEventListener('click', function(){
+      handleShiftCellClick(td);
+    });
+  });
+}
+
+function handleShiftCellClick(td) {
+  var name = td.dataset.name;
+  var date = td.dataset.date;
+  var key = name + '__' + date;
+  var data = adminShiftData;
+  var current = data.edits[key];
+
+  // 編集メニューを出す
+  var req = data.requests[key];
+  var reqText = '希望：';
+  if (!req) reqText += '未提出';
+  else if (req.option === '⏰') reqText += '時間指定 ' + req.timeFrom + '〜' + req.timeTo;
+  else reqText += req.option;
+  if (req && req.memo) reqText += '\n備考: ' + req.memo;
+
+  // シンプル選択：プロンプトで状態を選ぶ
+  // 0: クリア 1: 確定（時間指定） 2: 休み
+  modalPrompt(
+    name + ' ' + date + '\n' + reqText + '\n\n' +
+    '操作を選んでください:\n' +
+    '  1 = 出勤確定（時間指定）\n' +
+    '  2 = 休み\n' +
+    '  0 = クリア',
+    '操作番号',
+    '1'
+  ).then(function(choice){
+    if (choice === null) return;
+    choice = String(choice).trim();
+    if (choice === '0') {
+      delete data.edits[key];
+      renderShiftMatrix();
+      return;
+    }
+    if (choice === '2') {
+      data.edits[key] = { state: '休み', timeFrom: '', timeTo: '' };
+      renderShiftMatrix();
+      return;
+    }
+    // 確定（時間指定）
+    var defFrom = (req && req.option === '⏰' && req.timeFrom) ? req.timeFrom : '20:00';
+    var defTo   = (req && req.option === '⏰' && req.timeTo) ? req.timeTo : '02:00';
+    modalPrompt('開始時刻 (HH:MM)', '開始', defFrom).then(function(from){
+      if (!from) return;
+      modalPrompt('終了時刻 (HH:MM)', '終了', defTo).then(function(to){
+        if (!to) return;
+        data.edits[key] = { state: '確定', timeFrom: from, timeTo: to };
+        renderShiftMatrix();
+      });
+    });
+  });
+}
+
+function saveAdminShiftConfirm() {
+  if (!adminShiftData) { showToast('シフト一覧を読み込んでください', 'err'); return; }
+  var edits = adminShiftData.edits;
+  var keys = Object.keys(edits);
+  modalConfirm(
+    keys.length + '件のシフト確定を保存します。\n' +
+    'Googleカレンダーに反映されます（既存イベントは上書き）。\n\n' +
+    'よろしいですか？',
+    '出勤決定の保存'
+  ).then(function(ok){
+    if (!ok) return;
+    var confirms = keys.map(function(key){
+      var parts = key.split('__');
+      var e = edits[key];
+      return {
+        name: parts[0],
+        date: parts[1],
+        timeFrom: e.timeFrom || '',
+        timeTo: e.timeTo || '',
+        status: e.state,
+        memo: '',
+      };
+    });
+    showOverlay('保存中（Googleカレンダー反映含む）...');
+    google.script.run
+      .withSuccessHandler(function(res){
+        hideOverlay();
+        if (res.ok) {
+          showToast(res.message, 'ok');
+          addLog('ok', res.message);
+        } else {
+          showToast(res.message, 'err');
+          addLog('err', res.message);
+        }
+      })
+      .withFailureHandler(function(err){
+        hideOverlay();
+        showToast('エラー: ' + err.message, 'err');
+      })
+      .adminSaveShiftConfirm(adminToken, adminShiftData.year, adminShiftData.month, confirms);
+  });
+}
+
+// 管理画面表示時に月セレクトを初期化
+initAdminShiftMonthSelect();
+
+/* =====================================================
+   カレンダー情報の読み込み
+   ===================================================== */
+function loadCalendarInfo() {
+  if (!$('calendarInfoText')) return;
+  $('calendarInfoText').textContent = '確認中...';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (!res.ok) {
+        $('calendarInfoText').textContent = '取得エラー: ' + res.message;
+        return;
+      }
+      if (!res.configured) {
+        $('calendarInfoText').innerHTML = '<span style="color: #888;">⚠️ 未設定（オーナーのメインカレンダーが使用されます）</span>';
+        return;
+      }
+      if (res.valid === false) {
+        $('calendarInfoText').innerHTML = '<span style="color:#c62828;">❌ カレンダーが見つかりません（ID: ' + escapeHtml(res.calendarId) + '）</span>';
+        return;
+      }
+      $('calendarInfoText').innerHTML = '✅ ' + escapeHtml(res.calendarName) +
+        '<span style="font-size:10px; color: #888; font-weight:400; margin-left:6px;">（' + escapeHtml(res.calendarId) + '）</span>';
+    })
+    .withFailureHandler(function(err){
+      $('calendarInfoText').textContent = '取得エラー: ' + err.message;
+    })
+    .adminGetCalendarInfo(adminToken);
+}
+
+
+/* =====================================================
+   PIN管理（管理画面）
+   ===================================================== */
+function loadPinStatus() {
+  showOverlay('PIN状況を読み込み中...');
+  google.script.run
+    .withSuccessHandler(function(res){
+      hideOverlay();
+      if (!res.ok) { showToast(res.message, 'err'); return; }
+      var html = '<table class="data-table" style="width:100%;"><thead><tr>' +
+        '<th>名前</th><th>PIN状態</th><th>ロック</th><th>操作</th>' +
+        '</tr></thead><tbody>';
+      res.staff.forEach(function(s){
+        var pinLabel = s.hasPin ? '<span style="color:#43a047;">✅設定済</span>' : '<span style="color:#999;">未設定</span>';
+        var lockLabel = s.locked ? '<span style="color:#e53935; font-weight:700;">🔒ロック中</span>' : '—';
+        var resetBtn = (s.hasPin || s.locked)
+          ? '<button class="btn-danger" style="padding:6px 10px; font-size:11px;" onclick="resetPinFor(\'' + escapeHtml(s.name).replace(/'/g, '\\\'') + '\')">リセット</button>'
+          : '—';
+        html += '<tr><td>' + escapeHtml(s.name) + '</td><td>' + pinLabel + '</td><td>' + lockLabel + '</td><td>' + resetBtn + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      $('pinStatusArea').innerHTML = html;
+    })
+    .withFailureHandler(function(err){
+      hideOverlay();
+      showToast('エラー: ' + err.message, 'err');
+    })
+    .adminGetPinStatus(adminToken);
+}
+
+function resetPinFor(name) {
+  modalConfirm(name + 'さんのPINをリセットします。\n次回ログイン時に再設定が必要です。\n\nよろしいですか？', 'PINリセット').then(function(ok){
+    if (!ok) return;
+    showOverlay('リセット中...');
+    google.script.run
+      .withSuccessHandler(function(res){
+        hideOverlay();
+        showToast(res.message, res.ok ? 'ok' : 'err');
+        if (res.ok) loadPinStatus();
+      })
+      .withFailureHandler(function(err){
+        hideOverlay();
+        showToast('エラー: ' + err.message, 'err');
+      })
+      .adminResetPin(adminToken, name);
+  });
+}
+window.resetPinFor = resetPinFor;
+
+
+/* =====================================================
+   PIN認証（スタッフ画面）
+   ===================================================== */
+var PIN_LENGTH = 4;
+var pinBuffer = '';
+var pinSetupBuffer = '';
+var pinSetupName = '';
+var pinSetupStage = 'enter';  // 'enter' or 'confirm'
+var pinSetupFirstInput = '';
+var pinFailCount = 0;
+var idleTimer = null;
+var idleSecondsLeft = 180;
+
+function showPinLogin() {
+  $('pinLoginCard').style.display = '';
+  $('pinSetupCard').style.display = 'none';
+  $('staffMainArea').style.display = 'none';
+  $('pinSetupStep1').style.display = '';
+  $('pinSetupStep2').style.display = 'none';
+  pinBuffer = '';
+  pinSetupBuffer = '';
+  pinSetupName = '';
+  pinSetupFirstInput = '';
+  pinSetupStage = 'enter';
+  updatePinDots('pinDots', 0);
+  updatePinDots('pinSetupDots', 0);
+  $('pinMsg').className = 'msg';
+  $('pinMsg').textContent = '';
+  $('pinSetupMsg').className = 'msg';
+  $('pinSetupMsg').textContent = '';
+  // 隠し staffSelect の値も消す
+  if (sel) sel.value = '';
+  stopIdleTimer();
+}
+
+function showStaffMain(name) {
+  $('pinLoginCard').style.display = 'none';
+  $('pinSetupCard').style.display = 'none';
+  $('staffMainArea').style.display = '';
+  $('currentStaffName').textContent = name;
+  if (sel) sel.value = name;
+  // 勤怠タブをデフォルト表示
+  document.querySelectorAll('.sub-tab-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.subtab === 'clock');
+  });
+  document.querySelectorAll('.sub-tab-pane').forEach(function(p){
+    p.classList.toggle('active', p.id === 'subpane-clock');
+  });
+  refreshStatus();
+}
+
+function updatePinDots(elId, count) {
+  var el = $(elId);
+  if (!el) return;
+  var dots = el.querySelectorAll('.pin-dot');
+  dots.forEach(function(d, i){
+    if (i < count) d.classList.add('filled');
+    else d.classList.remove('filled');
+  });
+}
+
+function showPinMsg(elId, type, text) {
+  var e = $(elId);
+  if (!e) return;
+  e.className = 'msg ' + type;
+  e.textContent = text;
+}
+
+// ===== ログイン用テンキー =====
+document.querySelectorAll('#pinPad .pin-key').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var key = btn.dataset.key;
+    if (key === 'del') {
+      pinBuffer = pinBuffer.slice(0, -1);
+      updatePinDots('pinDots', pinBuffer.length);
+      $('pinMsg').textContent = '';
+      return;
+    }
+    if (key === 'setup') {
+      // 初回設定画面へ
+      $('pinLoginCard').style.display = 'none';
+      $('pinSetupCard').style.display = '';
+      $('pinSetupStep1').style.display = '';
+      $('pinSetupStep2').style.display = 'none';
+      $('pinSetupMsg').textContent = '';
+      return;
+    }
+    if (pinBuffer.length >= PIN_LENGTH) return;
+    pinBuffer += key;
+    updatePinDots('pinDots', pinBuffer.length);
+
+    if (pinBuffer.length === PIN_LENGTH) {
+      // 認証実行
+      attemptPinLogin(pinBuffer);
+    }
+  });
+});
+
+function attemptPinLogin(pin) {
+  showPinMsg('pinMsg', 'info', '⏳ 認証中...');
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (res.ok) {
+        pinFailCount = 0;
+        showStaffMain(res.name);
+        showToast(res.name + 'さんでログインしました', 'ok');
+      } else if (res.locked) {
+        pinBuffer = '';
+        updatePinDots('pinDots', 0);
+        showPinMsg('pinMsg', 'err', res.message);
+      } else {
+        pinFailCount++;
+        pinBuffer = '';
+        updatePinDots('pinDots', 0);
+        var remain = 3 - pinFailCount;
+        if (pinFailCount >= 3) {
+          showPinMsg('pinMsg', 'err', '❌ 3回連続で間違えました。\nオーナーに連絡してリセットしてもらってください');
+        } else {
+          showPinMsg('pinMsg', 'err', '❌ PINが違います（あと' + remain + '回）');
+        }
+      }
+    })
+    .withFailureHandler(function(err){
+      pinBuffer = '';
+      updatePinDots('pinDots', 0);
+      showPinMsg('pinMsg', 'err', 'エラー: ' + err.message);
+    })
+    .authenticateByPin(pin);
+}
+
+// ===== 初回PIN設定 =====
+$('btnPinSetupNext').addEventListener('click', function(){
+  var name = $('pinSetupName').value;
+  if (!name) {
+    showPinMsg('pinSetupMsg', 'err', 'スタッフ名を選んでください');
+    return;
+  }
+  pinSetupName = name;
+  $('pinSetupNameLabel').textContent = name + ' さん';
+  $('pinSetupStep1').style.display = 'none';
+  $('pinSetupStep2').style.display = '';
+  pinSetupBuffer = '';
+  pinSetupStage = 'enter';
+  pinSetupFirstInput = '';
+  updatePinDots('pinSetupDots', 0);
+  $('pinSetupMsg').className = 'msg info';
+  $('pinSetupMsg').textContent = 'PINを設定してください';
+});
+
+$('btnPinSetupCancel').addEventListener('click', function(){
+  showPinLogin();
+});
+
+document.querySelectorAll('#pinSetupPad .pin-key').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var key = btn.dataset.key;
+    if (key === 'back') {
+      // step2 から step1 へ
+      $('pinSetupStep1').style.display = '';
+      $('pinSetupStep2').style.display = 'none';
+      pinSetupBuffer = '';
+      return;
+    }
+    if (key === 'del') {
+      pinSetupBuffer = pinSetupBuffer.slice(0, -1);
+      updatePinDots('pinSetupDots', pinSetupBuffer.length);
+      $('pinSetupMsg').textContent = '';
+      return;
+    }
+    if (pinSetupBuffer.length >= PIN_LENGTH) return;
+    pinSetupBuffer += key;
+    updatePinDots('pinSetupDots', pinSetupBuffer.length);
+
+    if (pinSetupBuffer.length === PIN_LENGTH) {
+      if (pinSetupStage === 'enter') {
+        // 1回目入力完了 → 確認入力へ
+        pinSetupFirstInput = pinSetupBuffer;
+        pinSetupBuffer = '';
+        pinSetupStage = 'confirm';
+        updatePinDots('pinSetupDots', 0);
+        $('pinSetupMsg').className = 'msg info';
+        $('pinSetupMsg').textContent = '確認のためもう一度入力してください';
+      } else {
+        // 確認入力完了
+        if (pinSetupBuffer !== pinSetupFirstInput) {
+          showPinMsg('pinSetupMsg', 'err', '❌ PINが一致しません。最初からやり直してください');
+          pinSetupBuffer = '';
+          pinSetupFirstInput = '';
+          pinSetupStage = 'enter';
+          updatePinDots('pinSetupDots', 0);
+          return;
+        }
+        // 一致 → 保存
+        showPinMsg('pinSetupMsg', 'info', '⏳ 保存中...');
+        google.script.run
+          .withSuccessHandler(function(res){
+            if (res.ok) {
+              showToast('✅ PINを設定しました', 'ok');
+              showStaffMain(res.name);
+            } else {
+              showPinMsg('pinSetupMsg', 'err', '❌ ' + res.message);
+              pinSetupBuffer = '';
+              pinSetupFirstInput = '';
+              pinSetupStage = 'enter';
+              updatePinDots('pinSetupDots', 0);
+            }
+          })
+          .withFailureHandler(function(err){
+            showPinMsg('pinSetupMsg', 'err', 'エラー: ' + err.message);
+          })
+          .setInitialPin(pinSetupName, pinSetupBuffer);
+      }
+    }
+  });
+});
+
+// ===== ログアウト =====
+$('btnLogout').addEventListener('click', function(){
+  modalConfirm('ログアウトしますか？', 'ログアウト').then(function(ok){
+    if (!ok) return;
+    doLogout('ログアウトしました');
+  });
+});
+
+function doLogout(msg) {
+  showPinLogin();
+  if (msg) showToast(msg, 'ok');
+}
+
+// ===== 出勤前アイドルタイマー（refreshStatus 後に状態判定） =====
+(function(){
+  var origRefresh = window.refreshStatus;
+  if (typeof origRefresh === 'function') {
+    window.refreshStatus = function() {
+      var name = sel.value;
+      if (!name) { origRefresh(); return; }
+      google.script.run
+        .withSuccessHandler(function(res){
+          // 出勤前ならアイドルタイマー開始、それ以外は停止
+          if (res.state === 'none') startIdleTimer();
+          else stopIdleTimer();
+
+          var sessions = res.sessions || [];
+          if (typeof renderSessionList === 'function') renderSessionList(sessions);
+          if (res.state === 'working') {
+            statusBox.className = 'status-box status-working';
+            var seqInfo = sessions.length > 1 ? '（本日' + sessions.length + '回目）' : '';
+            statusBox.textContent = '✅ 出勤中（' + res.startTime + '〜）' + seqInfo;
+            btnIn.textContent = '🔄 再出勤';
+            btnIn.disabled = false;
+            btnOut.disabled = false;
+            updateSaleLock(true);
+          } else if (res.state === 'done') {
+            statusBox.className = 'status-box status-done';
+            statusBox.textContent = '🌙 ' + res.startTime + '〜' + res.endTime + ' 退勤済';
+            btnIn.textContent = '🔄 再出勤';
+            btnIn.disabled = false;
+            btnOut.disabled = true;
+            updateSaleLock(false);
+          } else {
+            statusBox.className = 'status-box status-none';
+            statusBox.textContent = '本日まだ出勤していません';
+            btnIn.textContent = '出 勤';
+            btnIn.disabled = false;
+            btnOut.disabled = true;
+            updateSaleLock(false);
+          }
+          clearMsg();
+        })
+        .withFailureHandler(function(err){
+          setMsg('err', '状態取得エラー: ' + err.message);
+        })
+        .getTodayStatus(name);
+    };
+  }
+})();
+
+// ===== 出勤前アイドルタイマー =====
+function startIdleTimer() {
+  stopIdleTimer();
+  idleSecondsLeft = 180;
+  $('idleTimerBox').style.display = '';
+  updateIdleTimerDisplay();
+  idleTimer = setInterval(function(){
+    idleSecondsLeft--;
+    updateIdleTimerDisplay();
+    if (idleSecondsLeft <= 0) {
+      stopIdleTimer();
+      doLogout('⏱ タイムアウトしました');
+    }
+  }, 1000);
+}
+function stopIdleTimer() {
+  if (idleTimer) {
+    clearInterval(idleTimer);
+    idleTimer = null;
+  }
+  $('idleTimerBox').style.display = 'none';
+}
+function updateIdleTimerDisplay() {
+  var m = Math.floor(idleSecondsLeft / 60);
+  var s = idleSecondsLeft % 60;
+  $('idleTimerText').textContent = m + ':' + (s < 10 ? '0' + s : s);
+}
+
+// ===== どこかをタップしたらアイドルタイマーリセット =====
+document.addEventListener('click', function(){
+  if (idleTimer) {
+    idleSecondsLeft = 180;
+    updateIdleTimerDisplay();
+  }
+}, { passive: true });
+
+// 初期状態：PINログイン画面
+showPinLogin();
+
+</script>
+</body>
+</html>

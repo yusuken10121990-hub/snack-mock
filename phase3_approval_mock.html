@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase3 PDF承認フロー（モック）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: #1a1a1a;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(255,194,224,0.5) 0, transparent 28%),
+        radial-gradient(circle at 92% 96%, rgba(255,210,140,0.45) 0, transparent 32%),
+        #f5f5f7;
+      min-height: 100vh;
+      padding: 14px;
+      padding-bottom: 40px;
+    }
+    .mock-banner {
+      background: #fff3e0;
+      color: #e65100;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      text-align: center;
+      border-left: 3px solid #ff9a3e;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 14px;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 16px;
+    }
+    .header .shop {
+      font-size: 10px; color: #d6336c; font-weight: 700; letter-spacing: 3px;
+    }
+    .header .title {
+      font-size: 20px; font-weight: 800;
+      color: #d6336c;
+      letter-spacing: 3px; margin-top: 2px;
+    }
+
+    /* 画面切替タブ */
+    .view-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+      background: #fafafa;
+      padding: 6px;
+      border-radius: 14px;
+    }
+    .view-tab {
+      padding: 10px 4px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      cursor: pointer;
+    }
+    .view-tab.active {
+      background: #d6336c;
+      color: #fff;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .card h2 {
+      font-size: 14px; font-weight: 700; color: #d6336c;
+      margin-bottom: 10px; padding-left: 8px;
+      border-left: 3px solid #ff9a3e; letter-spacing: 1px;
+    }
+
+    /* フロー説明 */
+    .flow-info {
+      background: #f5f5f7;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 11px;
+      color: #1565c0;
+      line-height: 1.7;
+      border-left: 4px solid #42a5f5;
+    }
+    .flow-info b { color: #0d47a1; }
+
+    /* ====== 管理者画面 ====== */
+    .sent-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .sent-stat {
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .sent-stat .num {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .sent-stat .lbl {
+      font-size: 9px;
+      color: #888;
+      margin-top: 2px;
+      letter-spacing: 1px;
+    }
+    .sent-stat.waiting .num { color: #ff9a3e; }
+    .sent-stat.approved .num { color: #43a047; }
+    .sent-stat.rejected .num { color: #e53935; }
+    .sent-stat.notsent .num { color: #888; }
+
+    .staff-pdf-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .staff-pdf-row .name {
+      font-weight: 700; color: #1a1a1a;
+    }
+    .staff-pdf-row .amount {
+      font-size: 13px; font-weight: 800; color: #d6336c;
+    }
+    .staff-pdf-row .status {
+      font-size: 9px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .status.waiting { background: #fff3e0; color: #e65100; }
+    .status.approved { background: #e8f5e9; color: #2e7d32; }
+    .status.rejected { background: #ffebee; color: #c62828; }
+    .status.notsent { background: #f5f5f5; color: #666; }
+
+    .staff-pdf-row .btn-action {
+      padding: 6px 10px;
+      background: #d6336c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .staff-pdf-row .btn-action.review {
+      background: #ff5722;
+    }
+
+    .bulk-send {
+      width: 100%;
+      padding: 14px;
+      background: #d6336c;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    /* ====== スタッフ画面（明細表示） ====== */
+    .statement-header {
+      text-align: center;
+      margin-bottom: 14px;
+      padding: 14px;
+      background: #fff8f0;
+      border-radius: 12px;
+    }
+    .statement-header .month {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 2px;
+    }
+    .statement-header .name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin: 4px 0;
+    }
+    .statement-header .total-amt {
+      font-size: 28px;
+      font-weight: 800;
+      color: #d6336c;
+      letter-spacing: -1px;
+    }
+
+    .statement-section {
+      margin-bottom: 14px;
+    }
+    .statement-section h3 {
+      font-size: 12px;
+      color: #d6336c;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #ffd6e8;
+    }
+    .item-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      padding: 4px 0;
+      font-size: 12px;
+      color: #1a1a1a;
+    }
+    .item-line .amount {
+      color: #d6336c;
+      font-weight: 700;
+    }
+    .total-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      padding: 8px 0;
+      margin-top: 6px;
+      border-top: 2px solid #ffd6e8;
+      font-size: 14px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+    .total-line .amount {
+      color: #d6336c;
+    }
+
+    .approve-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .approve-actions button {
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .approve-actions .approve {
+      background: #43a047;
+      color: #fff;
+    }
+    .approve-actions .reject {
+      background: #e53935;
+      color: #fff;
+    }
+
+    /* ====== 申告フォーム ====== */
+    .form-row {
+      margin-bottom: 12px;
+    }
+    .form-row label {
+      display: block;
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .form-row select, .form-row input, .form-row textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #1a1a1a;
+      background: #fff;
+      font-family: inherit;
+    }
+    .form-row textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+    .correction-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .correction-row .arrow {
+      color: #ff9a3e;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .correction-row input {
+      text-align: center;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #ff5722;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    /* ====== 管理者：申告確認 ====== */
+    .review-card {
+      background: #fff8f0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      border-left: 4px solid #ff5722;
+    }
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .review-header .name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+    .review-header .date {
+      font-size: 10px;
+      color: #888;
+    }
+    .review-detail {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: #1a1a1a;
+    }
+    .review-detail b {
+      color: #d6336c;
+    }
+    .review-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .review-actions button {
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+    }
+    .review-actions .accept {
+      background: #43a047;
+      color: #fff;
+    }
+    .review-actions .deny {
+      background: #f5f5f5;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+<div class="mock-banner">
+  🧪 Phase3 モック / 📄 PDF承認フロー（3画面切替）
+</div>
+
+<div class="header">
+  <div class="shop">スナック コレカラ</div>
+  <div class="title">📄 明細承認フロー</div>
+</div>
+
+<!-- 画面切替 -->
+<div class="view-tabs">
+  <button class="view-tab active" onclick="switchView('admin')">🛠️ 管理者送信</button>
+  <button class="view-tab" onclick="switchView('staff')">👤 スタッフ確認</button>
+  <button class="view-tab" onclick="switchView('review')">📝 申告確認</button>
+</div>
+
+<!-- ====== 画面1: 管理者送信 ====== -->
+<div id="view-admin">
+  <div class="flow-info">
+    🛠️ <b>管理者画面（明細送信）</b><br>
+    月末締め後、各スタッフに明細を送信します。<br>
+    送信後はステータスが「⏳送信済→✅承認/❌否決」で変わります。
+  </div>
+
+  <div class="card">
+    <h2>📤 5月分明細送信状況</h2>
+
+    <div class="sent-summary">
+      <div class="sent-stat approved">
+        <div class="num">12</div>
+        <div class="lbl">承認済</div>
+      </div>
+      <div class="sent-stat waiting">
+        <div class="num">4</div>
+        <div class="lbl">確認待ち</div>
+      </div>
+      <div class="sent-stat rejected">
+        <div class="num">2</div>
+        <div class="lbl">否決</div>
+      </div>
+      <div class="sent-stat notsent">
+        <div class="num">1</div>
+        <div class="lbl">未送信</div>
+      </div>
+    </div>
+
+    <div class="staff-pdf-row">
+      <div>
+        <div class="name">池みゆき</div>
+        <div style="font-size:10px; color: #888;">5/31 23:50 承認</div>
+      </div>
+      <div class="amount">¥186,500</div>
+      <span class="status approved">✅承認</span>
+    </div>
+
+    <div class="staff-pdf-row">
+      <div>
+        <div class="name">長谷川楓夏</div>
+        <div style="font-size:10px; color: #888;">確認待ち（送信から2日）</div>
+      </div>
+      <div class="amount">¥142,000</div>
+      <span class="status waiting">⏳確認待ち</span>
+    </div>
+
+    <div class="staff-pdf-row">
+      <div>
+        <div class="name">堤美伊那</div>
+        <div style="font-size:10px; color:#c62828;">❗ ドンペリ本数で申告あり</div>
+      </div>
+      <div class="amount">¥98,500</div>
+      <button class="btn-action review" onclick="switchView('review')">📝 確認</button>
+    </div>
+
+    <div class="staff-pdf-row">
+      <div>
+        <div class="name">宮本まほ</div>
+      </div>
+      <div class="amount">¥87,200</div>
+      <span class="status approved">✅承認</span>
+    </div>
+
+    <div class="staff-pdf-row">
+      <div>
+        <div class="name">山田ひより</div>
+        <div style="font-size:10px; color: #888;">未送信</div>
+      </div>
+      <div class="amount">¥42,000</div>
+      <button class="btn-action" onclick="alert('LIFFリンク付きでLINE送信（モック）')">📩 送信</button>
+    </div>
+
+    <div class="staff-pdf-row">
+      <div>
+        <div class="name">秋吉つかさ</div>
+      </div>
+      <div class="amount">¥38,500</div>
+      <span class="status waiting">⏳確認待ち</span>
+    </div>
+
+    <button class="bulk-send" onclick="alert('未送信全員に一括送信（モック）')">
+      📩 未送信の全員に一括送信
+    </button>
+  </div>
+</div>
+
+<!-- ====== 画面2: スタッフ確認（LIFF想定） ====== -->
+<div id="view-staff" style="display:none;">
+  <div class="flow-info">
+    👤 <b>スタッフ画面（LIFF）</b><br>
+    LINEから明細リンクをタップで開く想定。<br>
+    本人の明細のみ表示。承認/相違ありを選択。
+  </div>
+
+  <div class="card">
+    <div class="statement-header">
+      <div class="month">2026年 5月分 明細</div>
+      <div class="name">池みゆき</div>
+      <div class="total-amt">¥ 186,500</div>
+    </div>
+
+    <div class="statement-section">
+      <h3>稼働実績</h3>
+      <div class="item-line">
+        <span>出勤日数</span><span class="amount">22日</span>
+      </div>
+      <div class="item-line">
+        <span>稼働時間</span><span class="amount">154h 30m</span>
+      </div>
+    </div>
+
+    <div class="statement-section">
+      <h3>バック内訳</h3>
+      <div class="item-line">
+        <span>同伴バック（12組）</span><span class="amount">¥ 48,000</span>
+      </div>
+      <div class="item-line">
+        <span>集客バック（28名）</span><span class="amount">¥ 14,000</span>
+      </div>
+      <div class="item-line">
+        <span>ドンペリ（3.5本）20%</span><span class="amount">¥ 35,000</span>
+      </div>
+      <div class="item-line">
+        <span>モエ白（5本）20%</span><span class="amount">¥ 15,000</span>
+      </div>
+      <div class="item-line">
+        <span>ネクター（1本）20%</span><span class="amount">¥ 4,600</span>
+      </div>
+      <div class="item-line">
+        <span>その他</span><span class="amount">¥ 69,900</span>
+      </div>
+      <div class="total-line">
+        <span>合計</span><span class="amount">¥ 186,500</span>
+      </div>
+    </div>
+
+    <div class="approve-actions">
+      <button class="reject" onclick="showRejectForm()">❌ 相違あり</button>
+      <button class="approve" onclick="alert('✅ 承認しました。管理者に通知が届きます')">✅ 承認する</button>
+    </div>
+  </div>
+
+  <!-- 申告フォーム（reject時のみ表示） -->
+  <div class="card" id="rejectForm" style="display:none;">
+    <h2>📝 内容相違の申告</h2>
+    <div style="font-size:11px; color: #888; margin-bottom:10px;">
+      間違っている部分を教えてください。<br>
+      管理者が確認後、修正版を再送します。
+    </div>
+
+    <div class="form-row">
+      <label>日付</label>
+      <input type="date" value="2026-05-15">
+    </div>
+
+    <div class="form-row">
+      <label>項目</label>
+      <select>
+        <option>ドンペリ</option>
+        <option>モエ白</option>
+        <option>モエネクロゼ</option>
+        <option>ネクター</option>
+        <option>ヴーヴ</option>
+        <option>ルイナール</option>
+        <option>ベルエポック</option>
+        <option>白ワイン</option>
+        <option>同伴</option>
+        <option>集客</option>
+        <option>その他</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>修正内容</label>
+      <div class="correction-row">
+        <input type="text" value="1本" placeholder="現状">
+        <span class="arrow">▶</span>
+        <input type="text" value="2本" placeholder="修正後">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>コメント（任意）</label>
+      <textarea placeholder="例：カウンタも入れて2本でした">5/15のお客様、カウンタも入れて2本飲んでいただきました。</textarea>
+    </div>
+
+    <button class="submit-btn" onclick="alert('📩 申告を送信しました。\n管理者の確認後、修正版が再送されます')">
+      📩 申告を送信
+    </button>
+  </div>
+</div>
+
+<!-- ====== 画面3: 管理者：申告確認 ====== -->
+<div id="view-review" style="display:none;">
+  <div class="flow-info">
+    📝 <b>管理者画面（スタッフ申告の確認）</b><br>
+    スタッフから「相違あり」と申告された内容を確認。<br>
+    認める → データ修正＋明細再送 / 認めない → スタッフに理由を返信
+  </div>
+
+  <div class="review-card">
+    <div class="review-header">
+      <div class="name">堤美伊那 さんから申告</div>
+      <div class="date">5/31 18:23</div>
+    </div>
+
+    <div class="review-detail">
+      📅 <b>2026/5/15</b> の<b>ドンペリ</b>について<br>
+      ▶ 現状: <b>1本</b> → 修正希望: <b>2本</b><br>
+      <br>
+      💬 コメント：<br>
+      <i>「5/15のお客様、カウンタも入れて2本飲んでいただきました。」</i>
+    </div>
+
+    <div style="background:#fff; padding:10px 12px; border-radius:8px; margin-bottom:10px; font-size:11px;">
+      📊 修正前後の差額：<br>
+      • バック額: ¥10,000 → ¥20,000（<b>+¥10,000</b>）<br>
+      • 給料合計: ¥98,500 → ¥108,500
+    </div>
+
+    <div class="review-actions">
+      <button class="deny" onclick="alert('スタッフに「申告内容は確認できませんでした」と返信（モック）')">
+        ❌ 認めない
+      </button>
+      <button class="accept" onclick="alert('✅ データ修正＋明細再送（モック）\n本数を2本に更新し、新しい明細PDFを再送信します')">
+        ✅ 認める＋再送
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchView(name) {
+  document.querySelectorAll('.view-tab').forEach(function(t){ t.classList.remove('active'); });
+  event.target.classList.add('active');
+  ['admin','staff','review'].forEach(function(v){
+    document.getElementById('view-' + v).style.display = (v === name) ? '' : 'none';
+  });
+}
+
+function showRejectForm() {
+  document.getElementById('rejectForm').style.display = '';
+  document.getElementById('rejectForm').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+</script>
+</body>
+</html>
