@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>オーナー用ガイド | スナックコレカラ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: #4a2545;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(255,194,224,0.5) 0, transparent 28%),
+        radial-gradient(circle at 92% 96%, rgba(255,210,140,0.45) 0, transparent 32%),
+        linear-gradient(135deg, #fff5fa 0%, #fff8ec 50%, #f0fbff 100%);
+      min-height: 100vh;
+      padding: 16px 14px 40px;
+      line-height: 1.5;
+    }
+    .container { max-width: 540px; margin: 0 auto; }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 20px 16px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(255, 107, 157, 0.1);
+    }
+    .header .shop {
+      font-size: 11px;
+      color: #d6336c;
+      font-weight: 700;
+      letter-spacing: 4px;
+    }
+    .header .title {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff6b9d, #ff9a3e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 3px;
+      margin-top: 4px;
+    }
+    .header .sub {
+      font-size: 12px;
+      color: #8a4a6a;
+      margin-top: 6px;
+    }
+    .section {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(255, 107, 157, 0.08);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ffd6e8;
+    }
+    .num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6b9d, #ff9a3e);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #d6336c;
+    }
+    .step {
+      display: flex; gap: 10px; align-items: flex-start;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      background: #fff8fc;
+      border-radius: 12px;
+      border-left: 3px solid #ff9a3e;
+    }
+    .step:last-child { margin-bottom: 0; }
+    .step-num {
+      flex-shrink: 0;
+      font-weight: 800;
+      color: #d6336c;
+      font-size: 13px;
+      min-width: 28px;
+    }
+    .step-text {
+      flex: 1;
+      font-size: 13px;
+      color: #4a2545;
+    }
+    .step-text b {
+      color: #d6336c;
+      font-weight: 700;
+    }
+    .tip {
+      background: linear-gradient(135deg, #fff5e6, #ffe8d0);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #b06a3a;
+      line-height: 1.7;
+      border-left: 4px solid #ff9a3e;
+    }
+    .tip b { color: #e65100; }
+    .pw-box {
+      background: #fff5fa;
+      border: 2px dashed #ff6b9d;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .pw-box .pw-label {
+      font-size: 10px;
+      color: #8a4a6a;
+      letter-spacing: 2px;
+    }
+    .pw-box .pw {
+      font-size: 20px;
+      font-weight: 800;
+      color: #d6336c;
+      letter-spacing: 3px;
+      margin-top: 2px;
+      font-family: 'Courier New', monospace;
+    }
+    .tab-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .tab-card {
+      padding: 10px;
+      background: #fff;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 11px;
+      border: 1.5px solid #ffd6e8;
+    }
+    .tab-card .icon {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .tab-card b {
+      color: #d6336c;
+      font-weight: 700;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #8a4a6a;
+      margin-top: 20px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="shop">スナック コレカラ</div>
+    <div class="title">オーナー用ガイド</div>
+    <div class="sub">管理画面の使い方</div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="num">1</div>
+      <div class="section-title">🔓 管理画面に入る</div>
+    </div>
+    <div class="step">
+      <div class="step-num">1.</div>
+      <div class="step-text">アプリ下部の<b>「管理画面」</b>タブをタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2.</div>
+      <div class="step-text">パスワードを入力</div>
+    </div>
+    <div class="pw-box">
+      <div class="pw-label">PASSWORD</div>
+      <div class="pw">korekara2026</div>
+    </div>
+    <div class="tip">
+      💡 <b>パスワードは外部に共有しないでください</b>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="num">2</div>
+      <div class="section-title">📊 ダッシュボードの見方</div>
+    </div>
+    <div class="step-text" style="padding-left:0;">
+      ログイン後、画面上部の<b>4つのタブ</b>から確認できます：
+    </div>
+    <div class="tab-list">
+      <div class="tab-card">
+        <span class="icon">💵</span>
+        <b>売上</b><br>
+        本日と月次の総売上
+      </div>
+      <div class="tab-card">
+        <span class="icon">🕒</span>
+        <b>出勤者</b><br>
+        今出勤中の人
+      </div>
+      <div class="tab-card">
+        <span class="icon">⚠️</span>
+        <b>打刻漏れ</b><br>
+        押し忘れ一覧
+      </div>
+      <div class="tab-card">
+        <span class="icon">💰</span>
+        <b>給料</b><br>
+        スタッフ別バック額
+      </div>
+    </div>
+    <div class="tip">
+      💡 <b>売上と出勤者は1分ごとに自動更新</b>されます
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="num">3</div>
+      <div class="section-title">📅 シフト管理</div>
+    </div>
+    <div class="step">
+      <div class="step-num">1.</div>
+      <div class="step-text">管理画面下部の<b>「シフト管理」</b>セクションから</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2.</div>
+      <div class="step-text">対象月を選んで<b>「シフト一覧読込」</b></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3.</div>
+      <div class="step-text">各スタッフの希望を確認 → <b>出勤決定を保存</b></div>
+    </div>
+    <div class="tip">
+      💡 <b>確定するとGoogleカレンダーに自動反映</b>されます
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="num">4</div>
+      <div class="section-title">🔐 PIN管理</div>
+    </div>
+    <div class="step">
+      <div class="step-num">確認</div>
+      <div class="step-text"><b>「PIN状況を読み込み」</b>でスタッフのPIN設定状況を確認</div>
+    </div>
+    <div class="step">
+      <div class="step-num">リセット</div>
+      <div class="step-text">スタッフがPINを忘れた時は<b>「リセット」</b>ボタンでクリア</div>
+    </div>
+    <div class="tip">
+      💡 <b>リセット後、スタッフはもう一度「初回設定」からPINを作り直せます</b>
+    </div>
+  </div>
+
+  <div class="footer">
+    🌸 困ったときは サポートまで<br>
+    スナック コレカラ 管理者用
+  </div>
+</div>
+
+</body>
+</html>
