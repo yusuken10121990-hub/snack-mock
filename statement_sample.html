@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>支払い明細サンプル - 池みゆき様 2026年5月</title>
+  <style>
+    /* ===== ベース ===== */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: #4a2545;
+      background: #f0f0f0;
+    }
+
+    /* ===== A4 ページ（210mm×297mm） ===== */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 20px auto;
+      padding: 18mm 16mm;
+      background:
+        radial-gradient(circle at 15% 12%, rgba(255,194,224,0.55) 0, transparent 32%),
+        radial-gradient(circle at 88% 88%, rgba(255,210,140,0.5) 0, transparent 35%),
+        radial-gradient(circle at 50% 50%, rgba(200,240,255,0.25) 0, transparent 60%),
+        linear-gradient(135deg, #fff5fa 0%, #fff8ec 50%, #f0fbff 100%);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    /* 装飾的な丸 */
+    .page::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,154,62,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .page::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: -80px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,107,157,0.14) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ===== ヘッダー ===== */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .shop-name {
+      font-size: 14px;
+      color: #d6336c;
+      font-weight: 700;
+      letter-spacing: 4px;
+      margin-bottom: 6px;
+    }
+    .title {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff6b9d, #ff9a3e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 6px;
+      margin: 0;
+    }
+    .period {
+      font-size: 22px;
+      color: #b06a3a;
+      font-weight: 700;
+      margin-top: 8px;
+      letter-spacing: 2px;
+    }
+    .header::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 4px;
+      margin: 16px auto 0;
+      background: linear-gradient(90deg, #ff6b9d, #ff9a3e);
+      border-radius: 2px;
+    }
+
+    /* ===== 宛先 ===== */
+    .recipient {
+      background: rgba(255,255,255,0.7);
+      border-radius: 16px;
+      padding: 14px 24px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .recipient-label {
+      font-size: 11px;
+      color: #8a4a6a;
+      letter-spacing: 2px;
+      margin-bottom: 2px;
+    }
+    .recipient-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #4a2545;
+      letter-spacing: 2px;
+    }
+    .recipient-name .sama {
+      font-size: 14px;
+      color: #b06a3a;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+
+    /* ===== 内訳カード ===== */
+    .breakdown {
+      background: rgba(255,255,255,0.85);
+      border-radius: 20px;
+      padding: 22px 26px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 14px rgba(255,107,157,0.1);
+      position: relative;
+      z-index: 1;
+    }
+    .breakdown h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #d6336c;
+      margin: 0 0 14px;
+      letter-spacing: 3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .breakdown h2::before {
+      content: '';
+      display: inline-block;
+      width: 5px;
+      height: 18px;
+      background: linear-gradient(180deg, #ff6b9d, #ff9a3e);
+      border-radius: 3px;
+    }
+    .line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px dashed #ffd6e8;
+    }
+    .line:last-child { border-bottom: none; }
+    .line .label {
+      font-size: 15px;
+      color: #4a2545;
+      font-weight: 600;
+    }
+    .line .sub {
+      font-size: 11px;
+      color: #8a4a6a;
+      margin-left: 8px;
+      font-weight: 400;
+    }
+    .line .value {
+      font-size: 18px;
+      color: #4a2545;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .line .value .yen { font-size: 14px; color: #b06a3a; margin-right: 2px; }
+    .line .value .unit { font-size: 12px; color: #8a4a6a; margin-left: 4px; font-weight: 500; }
+
+    /* ===== 合計支給 ===== */
+    .total {
+      background: linear-gradient(135deg, #ff6b9d 0%, #ff9a3e 100%);
+      border-radius: 20px;
+      padding: 24px 26px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(255,107,157,0.3);
+      position: relative;
+      z-index: 1;
+    }
+    .total-label {
+      font-size: 13px;
+      letter-spacing: 6px;
+      opacity: 0.9;
+      margin-bottom: 6px;
+    }
+    .total-amount {
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .total-amount .yen { font-size: 28px; margin-right: 4px; }
+
+    /* ===== 振込先 ===== */
+    .bank {
+      background: rgba(255,255,255,0.7);
+      border-radius: 16px;
+      padding: 14px 22px;
+      font-size: 13px;
+      color: #4a2545;
+      position: relative;
+      z-index: 1;
+    }
+    .bank-label {
+      font-size: 11px;
+      color: #8a4a6a;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .bank-value {
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* ===== フッター ===== */
+    .footer {
+      text-align: center;
+      margin-top: 26px;
+      font-size: 11px;
+      color: #8a4a6a;
+      position: relative;
+      z-index: 1;
+    }
+    .footer .thanks {
+      font-size: 14px;
+      color: #d6336c;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 3px;
+    }
+
+    /* ===== 詳細ページ ===== */
+    .detail-header {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .detail-header .small-title {
+      font-size: 11px;
+      color: #d6336c;
+      letter-spacing: 4px;
+      margin-bottom: 4px;
+    }
+    .detail-header .title {
+      font-size: 22px;
+      letter-spacing: 4px;
+    }
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.85);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 3px 14px rgba(255,107,157,0.08);
+      position: relative;
+      z-index: 1;
+      font-size: 12px;
+    }
+    .detail-table thead th {
+      background: linear-gradient(135deg, #ff6b9d, #ff9a3e);
+      color: #fff;
+      padding: 10px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .detail-table tbody td {
+      padding: 8px;
+      border-bottom: 1px solid #ffe5ee;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: #4a2545;
+    }
+    .detail-table tbody td.date-cell {
+      text-align: center;
+      font-weight: 700;
+    }
+    .detail-table tbody td.day-cell {
+      text-align: center;
+      font-size: 11px;
+      color: #8a4a6a;
+    }
+    .detail-table tbody td.empty {
+      color: #ddd;
+    }
+    .detail-table tbody tr:nth-child(even) td {
+      background: rgba(255,246,250,0.5);
+    }
+    .detail-table tbody tr.sunday td {
+      background: rgba(255,240,240,0.6);
+    }
+    .detail-table tfoot td {
+      background: linear-gradient(135deg, #fff5fa, #fff8ec);
+      padding: 12px 8px;
+      font-weight: 800;
+      font-size: 13px;
+      color: #d6336c;
+      text-align: right;
+      border-top: 2px solid #ff9a3e;
+      font-variant-numeric: tabular-nums;
+    }
+    .detail-table tfoot td.label-cell {
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    /* ===== 印刷モード ===== */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page {
+        margin: 0;
+        box-shadow: none;
+        width: 210mm;
+        min-height: 297mm;
+        page-break-after: always;
+      }
+      .page:last-child { page-break-after: auto; }
+      .print-btn { display: none; }
+    }
+
+    .print-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ff6b9d, #ff9a3e);
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 50px;
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+      letter-spacing: 2px;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== ページ1：サマリー ===== -->
+<div class="page">
+  <div class="header">
+    <div class="shop-name">スナック コレカラ</div>
+    <h1 class="title">支払い明細</h1>
+    <div class="period">2026 年 5 月分</div>
+  </div>
+
+  <div class="recipient">
+    <div class="recipient-label">お渡し先</div>
+    <div class="recipient-name">池みゆき<span class="sama">様</span></div>
+  </div>
+
+  <!-- 稼働 -->
+  <div class="breakdown">
+    <h2>稼働給</h2>
+    <div class="line">
+      <span class="label">稼働時間<span class="sub">時給 ¥1,500</span></span>
+      <span class="value">88.5<span class="unit">時間</span></span>
+    </div>
+    <div class="line">
+      <span class="label">給与</span>
+      <span class="value"><span class="yen">¥</span>132,750</span>
+    </div>
+  </div>
+
+  <!-- バック -->
+  <div class="breakdown">
+    <h2>バック</h2>
+    <div class="line">
+      <span class="label">🍾 シャンパンバック</span>
+      <span class="value"><span class="yen">¥</span>84,000</span>
+    </div>
+    <div class="line">
+      <span class="label">💕 同伴バック</span>
+      <span class="value"><span class="yen">¥</span>24,000</span>
+    </div>
+    <div class="line">
+      <span class="label">🎯 集客バック</span>
+      <span class="value"><span class="yen">¥</span>3,500</span>
+    </div>
+    <div class="line">
+      <span class="label" style="color:#d6336c; font-weight:700;">バック小計</span>
+      <span class="value" style="color:#d6336c;"><span class="yen">¥</span>111,500</span>
+    </div>
+  </div>
+
+  <!-- 合計支給 -->
+  <div class="total">
+    <div class="total-label">支 給 合 計</div>
+    <div class="total-amount"><span class="yen">¥</span>244,250</div>
+  </div>
+
+  <div class="bank">
+    <div class="bank-label">振 込 先</div>
+    <div class="bank-value">◯◯銀行 ◯◯支店 普通 1234567 池みゆき</div>
+  </div>
+
+  <div class="footer">
+    <div class="thanks">今月もお疲れさまでした 💖</div>
+    <div>不明な点があればオーナーまでお問い合わせください</div>
+    <div style="margin-top:8px; font-size:10px;">発行日：2026/6/1</div>
+  </div>
+</div>
+
+<!-- ===== ページ2：日次明細 ===== -->
+<div class="page">
+  <div class="detail-header">
+    <div class="small-title">スナック コレカラ</div>
+    <h2 class="title">日 次 明 細</h2>
+    <div style="font-size:13px; color:#b06a3a; margin-top:4px; letter-spacing:1px;">池みゆき様 / 2026年5月</div>
+  </div>
+
+  <table class="detail-table">
+    <thead>
+      <tr>
+        <th style="width:50px;">日付</th>
+        <th style="width:38px;">曜日</th>
+        <th style="width:60px;">稼働<br>(時間)</th>
+        <th>シャンパン</th>
+        <th>同伴</th>
+        <th>集客</th>
+        <th>計</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="date-cell">5/1</td><td class="day-cell">木</td>
+        <td>4.5</td><td class="empty">—</td><td>4,000</td><td class="empty">—</td>
+        <td>4,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/2</td><td class="day-cell">金</td>
+        <td>3.0</td><td>6,000</td><td class="empty">—</td><td class="empty">—</td>
+        <td>6,000</td>
+      </tr>
+      <tr class="sunday">
+        <td class="date-cell">5/3</td><td class="day-cell">土</td>
+        <td class="empty">休</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td>
+        <td class="empty">—</td>
+      </tr>
+      <tr class="sunday">
+        <td class="date-cell">5/4</td><td class="day-cell">日</td>
+        <td>5.5</td><td>15,000</td><td>4,000</td><td>500</td>
+        <td>19,500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/6</td><td class="day-cell">火</td>
+        <td>4.0</td><td>6,000</td><td class="empty">—</td><td>500</td>
+        <td>6,500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/7</td><td class="day-cell">水</td>
+        <td>3.5</td><td class="empty">—</td><td>4,000</td><td class="empty">—</td>
+        <td>4,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/8</td><td class="day-cell">木</td>
+        <td>3.5</td><td>9,000</td><td class="empty">—</td><td class="empty">—</td>
+        <td>9,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/9</td><td class="day-cell">金</td>
+        <td>5.0</td><td>20,000</td><td>3,500</td><td>1,000</td>
+        <td>24,500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/10</td><td class="day-cell">土</td>
+        <td>4.0</td><td class="empty">—</td><td>4,000</td><td class="empty">—</td>
+        <td>4,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/13</td><td class="day-cell">火</td>
+        <td>3.0</td><td>6,000</td><td class="empty">—</td><td class="empty">—</td>
+        <td>6,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/14</td><td class="day-cell">水</td>
+        <td>4.5</td><td class="empty">—</td><td>8,000</td><td>500</td>
+        <td>8,500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/15</td><td class="day-cell">木</td>
+        <td>3.5</td><td>15,000</td><td class="empty">—</td><td class="empty">—</td>
+        <td>15,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/16</td><td class="day-cell">金</td>
+        <td>5.0</td><td class="empty">—</td><td>4,000</td><td>500</td>
+        <td>4,500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/17</td><td class="day-cell">土</td>
+        <td>4.5</td><td>13,000</td><td>3,500</td><td class="empty">—</td>
+        <td>16,500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/20</td><td class="day-cell">火</td>
+        <td>3.0</td><td class="empty">—</td><td>4,000</td><td class="empty">—</td>
+        <td>4,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/22</td><td class="day-cell">木</td>
+        <td>5.5</td><td class="empty">—</td><td class="empty">—</td><td>500</td>
+        <td>500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/23</td><td class="day-cell">金</td>
+        <td>4.0</td><td>9,000</td><td>4,000</td><td class="empty">—</td>
+        <td>13,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/24</td><td class="day-cell">土</td>
+        <td>5.0</td><td class="empty">—</td><td>4,000</td><td>500</td>
+        <td>4,500</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/27</td><td class="day-cell">火</td>
+        <td>4.5</td><td>13,000</td><td class="empty">—</td><td class="empty">—</td>
+        <td>13,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/29</td><td class="day-cell">木</td>
+        <td>5.5</td><td>9,000</td><td class="empty">—</td><td class="empty">—</td>
+        <td>9,000</td>
+      </tr>
+      <tr>
+        <td class="date-cell">5/30</td><td class="day-cell">金</td>
+        <td>3.0</td><td class="empty">—</td><td>4,000</td><td class="empty">—</td>
+        <td>4,000</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2" class="label-cell">合 計</td>
+        <td>88.5</td>
+        <td>84,000</td>
+        <td>24,000</td>
+        <td>3,500</td>
+        <td>111,500</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div style="background:rgba(255,255,255,0.7); border-radius:16px; padding:14px 22px; margin-top:16px; font-size:12px; line-height:1.7; color:#4a2545; position:relative; z-index:1;">
+    <div style="font-size:11px; color:#d6336c; font-weight:700; letter-spacing:2px; margin-bottom:8px;">📋 計算式</div>
+    稼働給：88.5時間 × ¥1,500 = ¥132,750<br>
+    シャンパンバック：売上 × 20%<br>
+    同伴バック：4,000円/組 × 100%<br>
+    集客バック：500円/名 × 100%
+  </div>
+
+  <div class="footer">
+    <div style="margin-top:8px; font-size:10px;">発行日：2026/6/1 / 1ページ目に金額の合計があります</div>
+  </div>
+</div>
+
+<button class="print-btn" onclick="window.print()">📄 PDF印刷 / 保存</button>
+
+</body>
+</html>

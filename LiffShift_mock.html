@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>シフト提出 - スナックコレカラ（モック）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: #4a2545;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(255,194,224,0.5) 0, transparent 28%),
+        radial-gradient(circle at 92% 96%, rgba(255,210,140,0.45) 0, transparent 32%),
+        linear-gradient(135deg, #fff5fa 0%, #fff8ec 50%, #f0fbff 100%);
+      min-height: 100vh;
+      padding: 12px;
+      padding-bottom: 80px;
+    }
+    .mock-banner {
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+      color: #e65100;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      text-align: center;
+      border-left: 4px solid #ff9a3e;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 14px;
+      padding: 16px 8px 12px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(255, 107, 157, 0.1);
+    }
+    .header .shop-name {
+      font-size: 10px;
+      color: #d6336c;
+      font-weight: 700;
+      letter-spacing: 3px;
+    }
+    .header .title {
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff6b9d, #ff9a3e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 4px;
+      margin-top: 2px;
+    }
+    .staff-name {
+      font-size: 14px;
+      color: #4a2545;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+    .staff-name .label {
+      font-size: 10px;
+      color: #8a4a6a;
+      font-weight: 400;
+      margin-right: 6px;
+    }
+
+    .month-selector, .mock-staff-selector {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(255, 107, 157, 0.08);
+    }
+    .month-selector label, .mock-staff-selector label {
+      font-size: 11px;
+      color: #8a4a6a;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      display: block;
+    }
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #ffd6e8;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #4a2545;
+      background: #fff;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23d6336c' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .deadline-box {
+      background: linear-gradient(135deg, #fff5e6, #ffe8d0);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      border-left: 4px solid #ff9a3e;
+      font-size: 12px;
+    }
+    .deadline-box .label {
+      font-size: 10px;
+      color: #b06a3a;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .deadline-box .value {
+      font-weight: 700;
+      color: #4a2545;
+    }
+    .deadline-box .urgent {
+      color: #c62828;
+      font-weight: 700;
+    }
+
+    .day-card {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .day-card.selected-ok {
+      background: linear-gradient(135deg, #f1f8e9, #e8f5e9);
+      box-shadow: 0 0 0 2px #a5d6a7;
+    }
+    .day-card.selected-maybe {
+      background: linear-gradient(135deg, #fffde7, #fff9e6);
+      box-shadow: 0 0 0 2px #ffd54f;
+    }
+    .day-card.selected-ng {
+      background: linear-gradient(135deg, #ffebee, #fce4ec);
+      box-shadow: 0 0 0 2px #ef9a9a;
+    }
+    .day-card.is-sun .date-label { color: #e53935; }
+    .day-card.is-sat .date-label { color: #1976d2; }
+
+    .date-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #4a2545;
+      margin-bottom: 8px;
+    }
+
+    .option-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+    .option-btn {
+      padding: 10px 4px;
+      border: 2px solid #e0e0e0;
+      background: #fff;
+      color: #666;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .option-btn:active { transform: scale(0.95); }
+    .option-btn.active.ok    { border-color: #43a047; background: #43a047; color: #fff; }
+    .option-btn.active.maybe { border-color: #f9a825; background: #f9a825; color: #fff; }
+    .option-btn.active.ng    { border-color: #e53935; background: #e53935; color: #fff; }
+
+    .time-row {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #ffd6e8;
+      align-items: center;
+      gap: 6px;
+    }
+    .day-card.show-time .time-row {
+      display: flex !important;
+    }
+    .time-row select {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1.5px solid #ffd6e8;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a2545;
+      background-color: #fff;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23d6336c' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 26px;
+    }
+    .time-row .separator {
+      color: #8a4a6a;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .submit-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 10px 14px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+      z-index: 50;
+    }
+    .submit-bar .progress {
+      font-size: 11px;
+      color: #8a4a6a;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .submit-bar .progress b {
+      color: #d6336c;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #ff6b9d, #ff9a3e);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+    }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled {
+      background: #ddd;
+      color: #999;
+      box-shadow: none;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #8a4a6a;
+      text-align: center;
+      padding: 8px;
+      line-height: 1.6;
+    }
+
+    .toast {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(74, 37, 69, 0.95);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      z-index: 100;
+      max-width: 90%;
+      text-align: center;
+    }
+    .toast.success { background: linear-gradient(135deg, #43a047, #66bb6a); }
+    .toast.error   { background: linear-gradient(135deg, #e53935, #ef5350); }
+  </style>
+</head>
+<body>
+
+<div class="mock-banner">
+  🧪 モックモード（ブラウザ動作確認用） / 本番では LINE で開きます
+</div>
+
+<div class="header">
+  <div class="shop-name">スナック コレカラ</div>
+  <div class="title">📅 シフト提出</div>
+  <div class="staff-name">
+    <span class="label">ログイン中</span>
+    <span id="staffNameText">池みゆき</span>
+  </div>
+</div>
+
+<div class="mock-staff-selector">
+  <label>🧪 モック：スタッフ切替（本番ではLINE IDで自動識別）</label>
+  <select id="mockStaffSelect">
+    <option value="池みゆき">池みゆき</option>
+    <option value="長谷川楓夏">長谷川楓夏</option>
+    <option value="堤美伊那">堤美伊那</option>
+    <option value="宮本まほ">宮本まほ</option>
+  </select>
+</div>
+
+<div class="month-selector">
+  <label>対象月を選んでください</label>
+  <select id="monthSelect"></select>
+</div>
+
+<div class="deadline-box">
+  <div class="label">📅 提出期限</div>
+  <div class="value">2026/06/05 まで（あと 10 日）</div>
+</div>
+
+<div class="hint">
+  ○ 出れる ・ △ 調整 ・ × 出れない<br>
+  「出れる」を選ぶと時間プルダウンが表示されます
+</div>
+
+<div id="dayList"></div>
+
+<div class="submit-bar">
+  <div class="progress">
+    入力済み <b id="progressCount">0</b> / <span id="totalCount">0</span> 日
+  </div>
+  <button id="btnSubmit" class="btn-submit" disabled>📤 シフトを提出する</button>
+</div>
+
+<script>
+var currentYear = null, currentMonth = null;
+var shiftData = {};
+var staffName = '池みゆき';
+function $(id) { return document.getElementById(id); }
+
+function showToast(text, type) {
+  var t = document.createElement('div');
+  t.className = 'toast ' + (type || '');
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2500);
+}
+
+$('mockStaffSelect').addEventListener('change', function(){
+  staffName = this.value;
+  $('staffNameText').textContent = staffName;
+  shiftData = {};
+  renderDays();
+});
+
+function initMonthSelect() {
+  var sel = $('monthSelect');
+  var now = new Date();
+  var html = '';
+  for (var i = 0; i <= 3; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    html += '<option value="' + d.getFullYear() + '-' + (d.getMonth()+1) + '">' + d.getFullYear() + '年' + (d.getMonth()+1) + '月</option>';
+  }
+  sel.innerHTML = html;
+  sel.addEventListener('change', function(){
+    var p = sel.value.split('-');
+    currentYear = Number(p[0]);
+    currentMonth = Number(p[1]);
+    shiftData = {};
+    renderDays();
+  });
+  if (sel.options.length >= 2) sel.selectedIndex = 1;
+  var p = sel.value.split('-');
+  currentYear = Number(p[0]);
+  currentMonth = Number(p[1]);
+  renderDays();
+}
+
+var TIME_OPTIONS_FROM = ['19:00','19:30','20:00','20:30','21:00','21:30','22:00'];
+var TIME_OPTIONS_TO   = ['00:00','01:00','02:00','03:00','04:00','05:00'];
+var DAY_NAMES = ['日','月','火','水','木','金','土'];
+
+function renderDays() {
+  var lastDay = new Date(currentYear, currentMonth, 0).getDate();
+  var listEl = $('dayList');
+  listEl.innerHTML = '';
+  for (var d = 1; d <= lastDay; d++) {
+    let dt = new Date(currentYear, currentMonth - 1, d);
+    let dow = dt.getDay();
+    let key = currentYear + '/' + currentMonth + '/' + d;
+    let saved = shiftData[key];
+
+    let card = document.createElement('div');
+    card.className = 'day-card';
+    card.dataset.key = key;
+    if (dow === 0) card.classList.add('is-sun');
+    else if (dow === 6) card.classList.add('is-sat');
+
+    if (saved) {
+      if (saved.option === '○' || saved.option === '⏰') card.classList.add('selected-ok', 'show-time');
+      else if (saved.option === '△') card.classList.add('selected-maybe');
+      else if (saved.option === '×') card.classList.add('selected-ng');
+    }
+
+    card.innerHTML =
+      '<div class="date-label">' + currentMonth + '/' + d + ' (' + DAY_NAMES[dow] + ')</div>' +
+      '<div class="option-row">' +
+        '<button class="option-btn ng' + (saved && saved.option === '×' ? ' active' : '') + '" data-act="ng">× 出れない</button>' +
+        '<button class="option-btn maybe' + (saved && saved.option === '△' ? ' active' : '') + '" data-act="maybe">△ 調整</button>' +
+        '<button class="option-btn ok' + (saved && (saved.option === '○' || saved.option === '⏰') ? ' active' : '') + '" data-act="ok">○ 出れる</button>' +
+      '</div>' +
+      '<div class="time-row">' +
+        '<select class="time-from">' + buildTimeOptions(TIME_OPTIONS_FROM, saved && saved.timeFrom || '20:00') + '</select>' +
+        '<span class="separator">〜</span>' +
+        '<select class="time-to">' + buildTimeOptions(TIME_OPTIONS_TO, saved && saved.timeTo || '02:00') + '</select>' +
+      '</div>';
+
+    // 初期描画時、show-timeクラスがあれば時間行を明示的に表示
+    if (card.classList.contains('show-time')) {
+      let tr = card.querySelector('.time-row');
+      if (tr) tr.style.display = 'flex';
+    }
+
+    card.querySelectorAll('.option-btn').forEach(function(b){
+      b.addEventListener('click', function(){ onOptionClick(card, b.dataset.act); });
+    });
+    card.querySelectorAll('.time-from, .time-to').forEach(function(s){
+      s.addEventListener('change', function(){ saveCardData(card); });
+    });
+    listEl.appendChild(card);
+  }
+  $('totalCount').textContent = lastDay;
+  updateProgress();
+}
+
+function buildTimeOptions(arr, selected) {
+  return arr.map(function(t){
+    return '<option value="' + t + '"' + (t === selected ? ' selected' : '') + '>' + t + '</option>';
+  }).join('');
+}
+
+function onOptionClick(card, act) {
+  var current = card.classList.contains('selected-ok') ? 'ok' :
+                card.classList.contains('selected-maybe') ? 'maybe' :
+                card.classList.contains('selected-ng') ? 'ng' : null;
+  card.querySelectorAll('.option-btn').forEach(function(b){ b.classList.remove('active'); });
+  card.classList.remove('selected-ok', 'selected-maybe', 'selected-ng', 'show-time');
+  // 時間行を確実に隠す
+  var timeRow = card.querySelector('.time-row');
+  if (timeRow) timeRow.style.display = 'none';
+
+  if (current === act) {
+    delete shiftData[card.dataset.key];
+    updateProgress();
+    return;
+  }
+  card.querySelector('.option-btn[data-act="' + act + '"]').classList.add('active');
+  if (act === 'ok') {
+    card.classList.add('selected-ok', 'show-time');
+    if (timeRow) timeRow.style.display = 'flex';
+  }
+  if (act === 'maybe') card.classList.add('selected-maybe');
+  if (act === 'ng')    card.classList.add('selected-ng');
+  saveCardData(card);
+}
+
+function saveCardData(card) {
+  var key = card.dataset.key;
+  if (card.classList.contains('selected-ok')) {
+    shiftData[key] = { option: '⏰', timeFrom: card.querySelector('.time-from').value, timeTo: card.querySelector('.time-to').value };
+  } else if (card.classList.contains('selected-maybe')) {
+    shiftData[key] = { option: '△', timeFrom: '', timeTo: '' };
+  } else if (card.classList.contains('selected-ng')) {
+    shiftData[key] = { option: '×', timeFrom: '', timeTo: '' };
+  } else {
+    delete shiftData[key];
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  var n = Object.keys(shiftData).length;
+  $('progressCount').textContent = n;
+  $('btnSubmit').disabled = (n === 0);
+}
+
+$('btnSubmit').addEventListener('click', function(){
+  var n = Object.keys(shiftData).length;
+  if (n === 0) return;
+  if (!confirm(n + '件のシフトを提出します。\nよろしいですか？')) return;
+  $('btnSubmit').disabled = true;
+  $('btnSubmit').textContent = '⏳ 送信中...';
+  setTimeout(function(){
+    showToast('✅ ' + staffName + 'さんのシフト' + n + '件を提出しました（モック）', 'success');
+    $('btnSubmit').textContent = '✅ 完了';
+    setTimeout(function(){
+      $('btnSubmit').textContent = '📤 シフトを提出する';
+      $('btnSubmit').disabled = false;
+    }, 2000);
+  }, 800);
+});
+
+initMonthSelect();
+</script>
+
+</body>
+</html>
